@@ -13,5 +13,6 @@ dependencies = [
 [dependency-groups]
 dev = [
     "fastapi-cli>=0.0.7",
+    "mypy>=1.16.0",
     "ruff>=0.11.13",
 ]
