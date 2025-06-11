@@ -1,8 +1,8 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .core.config import settings
-from .core.schemas import GlobalConfig
+from app.core.config import settings
+from app.core.schemas import GlobalConfig
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
