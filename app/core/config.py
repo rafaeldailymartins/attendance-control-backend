@@ -1,10 +1,6 @@
 from typing import Annotated, Any
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import (
-    AnyUrl,
-    BeforeValidator,
-    computed_field,
-)
+from pydantic import AnyUrl, BeforeValidator, computed_field
 
 
 def parse_cors(v: Any) -> list[str]:
@@ -25,6 +21,15 @@ class Settings(BaseSettings):
     PROJECT_NAME: str
     VERSION: str
     DESCRIPTION: str
+
+    ADMIN_ROLE_NAME: str = "admin"
+    FIRST_ADMIN_EMAIL: str
+    FIRST_ADMIN_PASSWORD: str
+
+    DEFAULT_MINUTES_EARLY: int = 15
+    DEFAULT_MINUTES_LATE: int = 15
+
+    DATABASE_URL: str
 
     FRONTEND_HOST: AnyUrl = AnyUrl("http://localhost:5173")
     BACKEND_CORS_ORIGINS: Annotated[
