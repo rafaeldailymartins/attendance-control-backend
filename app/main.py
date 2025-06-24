@@ -2,9 +2,9 @@ import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.core.schemas import GlobalConfig
-from app.core.db import init_db
+from app.api.core.config import settings
+from app.api.core.schemas import GlobalConfig
+from app.api.core.db import init_db
 
 
 @asynccontextmanager

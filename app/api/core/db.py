@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, create_engine, Session
 from typing import Annotated
 from fastapi import Depends
-from app.core.crud import create_admin_role, create_first_admin, reset_app_config
-from app.core.config import settings
+from app.api.core.crud import create_admin_role, create_first_admin, reset_app_config
+from app.api.core.config import settings
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
