@@ -26,6 +26,10 @@ services:
         PROJECT_NAME: ${PROJECT_NAME?Variable not set}
     env_file:
       - .env
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
     ports:
       - "8000:8000"
 
