@@ -68,6 +68,7 @@ class DayOff(ModelBase, table=True):
     date: date
     description: str
 
+
 class AppConfig(SQLModel, table=True):
     id: int = Field(default=1, primary_key=True)
     minutes_late: int

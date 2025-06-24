@@ -9,6 +9,7 @@ def db_insert(instance: SQLModel, session: Session):
     session.commit()
     session.refresh(instance)
 
+
 def get_admin_role(session: Session):
     return session.exec(
         select(Role).where(Role.name == settings.ADMIN_ROLE_NAME)

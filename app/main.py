@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     lifespan=lifespan,
-    title=settings.PROJECT_NAME,
+    title=settings.TITLE,
     version=settings.VERSION,
     description=settings.DESCRIPTION,
 )
@@ -36,6 +36,7 @@ async def root():
     Returns information about the application.
     """
     return app
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
