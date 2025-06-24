@@ -1,7 +1,7 @@
 from sqlmodel import Session, select, SQLModel
 from app.core.models import AppConfig, Role, User
 from app.core.config import settings
-from app.core.utils import get_password_hash
+from app.core.security import get_password_hash
 
 
 def db_insert(instance: SQLModel, session: Session):
