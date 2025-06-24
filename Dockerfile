@@ -19,10 +19,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project --no-dev
 
+ENV PYTHONPATH=/${PROJECT_NAME}
 
 COPY ./scripts ./scripts
 
-COPY ./pyproject.toml ./uv.lock ./
+COPY ./pyproject.toml ./uv.lock ./alembic.ini ./
 
 COPY ./app ./app
 
@@ -34,6 +35,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Place executables in the environment at the front of the path
 ENV PATH="/$PROJECT_NAME/.venv/bin:$PATH"
 
-RUN chmod +x ./scripts/start.sh
-
-ENTRYPOINT ["./scripts/start.sh"]
+CMD [ "fastapi", "run", "--host", "0.0.0.0", "--port", "8000", "app/main.py" ]

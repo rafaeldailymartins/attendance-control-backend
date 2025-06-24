@@ -1,6 +1,7 @@
 services:
 
   db:
+    container_name: 'db'
     image: postgres:17-alpine
     restart: always
     healthcheck:
@@ -19,34 +20,39 @@ services:
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
 
+  prestart:
+    container_name: 'prestart'
+    image: backend:latest
+    build:
+      context: .
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    command: bash scripts/prestart.sh
+    env_file:
+      - .env
+    environment:
+      IS_CONTAINER: true
+
   backend:
+    container_name: 'backend'
     build:
       context: .
       args:
         PROJECT_NAME: ${PROJECT_NAME?Variable not set}
     env_file:
       - .env
+    environment:
+      IS_CONTAINER: true
     depends_on:
       db:
         condition: service_healthy
         restart: true
+      prestart:
+        condition: service_completed_successfully
     ports:
       - "8000:8000"
-
-    develop:
-      # Create a `watch` configuration to update the app
-      # https://docs.docker.com/compose/file-watch
-      watch:
-        # Sync the working directory with the `/app` directory in the container
-        - action: sync
-          path: .
-          target: /${PROJECT_NAME?Variable not set}
-          ignore:
-            - .venv/
-
-        # Rebuild the image if dependencies change by checking uv.lock
-        - action: rebuild
-          path: ./uv.lock
 
 volumes:
   attendance-control-db:

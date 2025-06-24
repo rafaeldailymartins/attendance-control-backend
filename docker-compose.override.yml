@@ -1,0 +1,34 @@
+  services:
+    db:
+      restart: "no"
+      ports:
+        - "5432:5432"
+
+    backend:
+      restart: "no"
+      ports:
+        - "8000:8000"
+      build:
+        context: .
+      command:
+        - fastapi
+        - dev
+        - --host
+        - "0.0.0.0"
+        - --port
+        - "8000"
+        - "app/main.py"
+      develop:
+        # Create a `watch` configuration to update the app
+        # https://docs.docker.com/compose/file-watch
+        watch:
+          # Sync the working directory with the `/app` directory in the container
+          - action: sync
+            path: .
+            target: /${PROJECT_NAME?Variable not set}
+            ignore:
+              - .venv/
+
+          # Rebuild the image if dependencies change by checking uv.lock
+          - action: rebuild
+            path: ./uv.lock
