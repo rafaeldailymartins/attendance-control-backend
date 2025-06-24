@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -e
-set -x
 
 if [ "$ENV" = "local" ]; then
   echo "Starting in local mode..."
