@@ -43,7 +43,7 @@ def create_first_admin(session: Session):
     return admin
 
 
-def reset_app_config(session: Session):
+def populate_app_config(session: Session):
     app_config = session.exec(select(AppConfig)).first()
     if not app_config:
         app_config = AppConfig(
