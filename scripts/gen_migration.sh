@@ -15,4 +15,5 @@ if [ -z "$IS_CONTAINER" ] || [ "$IS_CONTAINER" = "false" ] || [ "$IS_CONTAINER" 
 fi
 echo "Using database on server: $POSTGRES_SERVER"
 
+#Generate a migration
 alembic revision --autogenerate -m "$1"
