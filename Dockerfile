@@ -4,6 +4,9 @@ ARG PROJECT_NAME
 
 WORKDIR /${PROJECT_NAME}/
 
+#Install curl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Enable bytecode compilation
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#compiling-bytecode
 ENV UV_COMPILE_BYTECODE=1

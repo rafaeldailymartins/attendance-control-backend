@@ -21,12 +21,20 @@ if settings.cors_origins:
     )
 
 
-@app.get("/", tags=["root"], response_model=GlobalConfig)
+@app.get("/", tags=["main"], response_model=GlobalConfig)
 async def root():
     """
     Returns information about the application.
     """
     return app
+
+
+@app.get("/health", tags=["main"])
+def health_check() -> bool:
+    """
+    Checks if the application is running and healthy.
+    """
+    return True
 
 
 if __name__ == "__main__":
