@@ -29,9 +29,9 @@ class Settings(BaseSettings):
     ENV: Literal["local", "staging", "production"] = "local"
 
     # FastAPI parameters
-    TITLE: str
+    TITLE: str = "Attendance Control API"
     VERSION: str
-    DESCRIPTION: str
+    DESCRIPTION: str = "The backend of the attendance control system"
 
     # First admin settings
     ADMIN_ROLE_NAME: str = "admin"
