@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import (
     AnyUrl,
     BeforeValidator,
+    EmailStr,
     PostgresDsn,
     computed_field,
     model_validator,
@@ -35,7 +36,7 @@ class Settings(BaseSettings):
 
     # First admin settings
     ADMIN_ROLE_NAME: str = "admin"
-    FIRST_ADMIN_EMAIL: str
+    FIRST_ADMIN_EMAIL: EmailStr
     FIRST_ADMIN_PASSWORD: str
 
     # Default App Config
