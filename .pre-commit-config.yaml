@@ -16,3 +16,11 @@ repos:
     - id: ruff-check
       args: [ --fix ]
     - id: ruff-format
+
+- repo: local
+  hooks:
+    - id: gitmoji
+      name: Add emoji to commit message
+      entry: python hooks/gitmoji.py
+      language: python
+      stages: [commit-msg]
