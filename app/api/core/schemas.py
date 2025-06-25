@@ -1,8 +1,17 @@
 from typing import Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+from pydantic.alias_generators import to_camel
 
 
-class GlobalConfig(BaseModel):
+class BaseSchema(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+    )
+
+
+class GlobalConfig(BaseSchema):
     title: str = Field(examples=["Attendance Control API"])
     version: str = Field(examples=["0.1.0"])
     description: str = Field(examples=["The backend of the attendance control system"])
