@@ -1,6 +1,6 @@
-from typing import Annotated, Any, Literal, Self
 import warnings
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Annotated, Any, Literal, Self
+
 from pydantic import (
     AnyUrl,
     BeforeValidator,
@@ -9,6 +9,7 @@ from pydantic import (
     computed_field,
     model_validator,
 )
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def parse_cors(v: Any) -> list[str]:

@@ -1,4 +1,5 @@
 import logging
+
 from app.api.core.db import init_db
 
 logging.basicConfig(level=logging.INFO)

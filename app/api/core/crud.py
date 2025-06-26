@@ -1,6 +1,7 @@
-from sqlmodel import Session, select, SQLModel
-from app.api.core.models import AppConfig, Role, User
+from sqlmodel import Session, SQLModel, select
+
 from app.api.core.config import settings
+from app.api.core.models import AppConfig, Role, User
 from app.api.core.security import get_password_hash
 
 

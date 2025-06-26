@@ -1,8 +1,8 @@
-from sqlmodel import Field, SQLModel, Relationship
-from datetime import datetime, timezone, time, date
-from pydantic import EmailStr
-from typing import List
+from datetime import date, datetime, time, timezone
 from enum import IntEnum
+
+from pydantic import EmailStr
+from sqlmodel import Field, Relationship, SQLModel
 
 
 class ModelBase(SQLModel):
@@ -12,7 +12,7 @@ class ModelBase(SQLModel):
 class Role(ModelBase, table=True):
     name: str = Field(unique=True)
 
-    users: List["User"] = Relationship(back_populates="role")
+    users: list["User"] = Relationship(back_populates="role")
 
 
 class User(ModelBase, table=True):
@@ -27,7 +27,7 @@ class User(ModelBase, table=True):
     )
 
     role: Role | None = Relationship(back_populates="users")
-    shifts: List["Shift"] = Relationship(back_populates="user")
+    shifts: list["Shift"] = Relationship(back_populates="user")
 
 
 class WeekdayEnum(IntEnum):
@@ -47,7 +47,7 @@ class Shift(ModelBase, table=True):
     user_id: int = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
 
     user: User = Relationship(back_populates="shifts")
-    attendances: List["Attendance"] = Relationship(back_populates="shift")
+    attendances: list["Attendance"] = Relationship(back_populates="shift")
 
 
 class AttendanceType(IntEnum):
