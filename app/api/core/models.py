@@ -1,4 +1,4 @@
-from datetime import date, datetime, time, timezone
+from datetime import UTC, date, datetime, time
 from enum import IntEnum
 
 from pydantic import EmailStr
@@ -20,7 +20,7 @@ class User(ModelBase, table=True):
     password: str
     name: str = Field(index=True)
     active: bool = Field(default=True)
-    created_at: datetime = Field(default=datetime.now(timezone.utc))
+    created_at: datetime = Field(default=datetime.now(UTC))
     updated_at: datetime | None = Field(default=None)
     role_id: int | None = Field(foreign_key="role.id", nullable=False)
 
