@@ -3,26 +3,26 @@ name = "attendance-control-backend"
 version = "0.1.0"
 description = "The backend of the attendance control system"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<4.0"
 dependencies = [
-    "email-validator>=2.2.0",
-    "fastapi>=0.115.12",
-    "passlib[bcrypt]>=1.7.4",
+    "email-validator<3.0.0,>=2.2.0",
+    "fastapi<1.0.0,>=0.115.12",
+    "passlib[bcrypt]<2.0.0,>=1.7.4",
     # Pin bcrypt until passlib supports the latest
     "bcrypt==4.0.1",
-    "pydantic-settings>=2.9.1",
-    "sqlmodel>=0.0.24",
-    "alembic>=1.16.2",
-    "fastapi-cli>=0.0.7",
-    "psycopg[binary]>=3.2.9",
+    "pydantic-settings<3.0.0,>=2.9.1",
+    "sqlmodel<1.0.0,>=0.0.24",
+    "alembic<2.0.0,>=1.16.2",
+    "fastapi-cli<1.0.0,>=0.0.7",
+    "psycopg[binary]<4.0.0,>=3.2.9",
 ]
 
 [dependency-groups]
 dev = [
-    "httpx>=0.28.1",
-    "mypy>=1.16.0",
-    "pre-commit>=4.2.0",
-    "pytest>=8.4.0",
-    "ruff>=0.11.13",
-    "types-passlib>=1.7.7.20250602",
+    "httpx<1.0.0,>=0.28.1",
+    "mypy<2.0.0,>=1.16.0",
+    "pre-commit<5.0.0,>=4.2.0",
+    "pytest<9.0.0,>=8.4.0",
+    "ruff<1.0.0,>=0.11.13",
+    "types-passlib<2.0.0,>=1.7.7.20250602",
 ]
