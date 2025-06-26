@@ -28,9 +28,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-v"
-testpaths = ["tests"]
-asyncio_mode = "auto"
+testpaths = ["app/tests"]
 
 [tool.ruff]
 target-version = "py310"
