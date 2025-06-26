@@ -22,9 +22,7 @@ class User(ModelBase, table=True):
     active: bool = Field(default=True)
     created_at: datetime = Field(default=datetime.now(timezone.utc))
     updated_at: datetime | None = Field(default=None)
-    role_id: int | None = Field(
-        default=None, foreign_key="role.id", nullable=True, ondelete="SET NULL"
-    )
+    role_id: int | None = Field(foreign_key="role.id", nullable=False)
 
     role: Role | None = Relationship(back_populates="users")
     shifts: list["Shift"] = Relationship(back_populates="user")

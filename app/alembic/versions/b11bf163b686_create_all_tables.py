@@ -1,8 +1,8 @@
 """create all tables
 
-Revision ID: c4bc8a130717
+Revision ID: b11bf163b686
 Revises:
-Create Date: 2025-06-24 05:32:45.134629
+Create Date: 2025-06-26 01:13:41.010144
 
 """
 
@@ -14,7 +14,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision: str = "c4bc8a130717"
+revision: str = "b11bf163b686"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -53,8 +53,11 @@ def upgrade() -> None:
         sa.Column("active", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.Column("role_id", sa.Integer(), nullable=True),
-        sa.ForeignKeyConstraint(["role_id"], ["role.id"], ondelete="SET NULL"),
+        sa.Column("role_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["role_id"],
+            ["role.id"],
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_user_email"), "user", ["email"], unique=True)
