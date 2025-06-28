@@ -7,14 +7,12 @@ requires-python = ">=3.12,<4.0"
 dependencies = [
     "email-validator<3.0.0,>=2.2.0",
     "fastapi<1.0.0,>=0.115.12",
-    "passlib[bcrypt]<2.0.0,>=1.7.4",
-    # Pin bcrypt until passlib supports the latest
-    "bcrypt==4.0.1",
     "pydantic-settings<3.0.0,>=2.9.1",
     "sqlmodel<1.0.0,>=0.0.24",
     "alembic<2.0.0,>=1.16.2",
     "fastapi-cli<1.0.0,>=0.0.7",
     "psycopg[binary]<4.0.0,>=3.2.9",
+    "bcrypt>=4.3.0",
 ]
 
 [dependency-groups]
