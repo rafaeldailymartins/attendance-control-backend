@@ -9,8 +9,7 @@ from app.api.core.crud import create_admin_role, create_first_admin, populate_ap
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 
-def init_db():
-    session = next(get_session())
+def init_db(session: Session):
     create_admin_role(session)
     create_first_admin(session=session)
     populate_app_config(session=session)

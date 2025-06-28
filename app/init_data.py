@@ -1,6 +1,6 @@
 import logging
 
-from app.api.core.db import init_db
+from app.api.core.db import get_session, init_db
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     logger.info("Creating initial data")
-    init_db()
+    init_db(next(get_session()))
     logger.info("Initial data created")
 
 
