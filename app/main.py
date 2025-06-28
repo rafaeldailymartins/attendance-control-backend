@@ -22,7 +22,7 @@ if settings.cors_origins:
 
 
 @app.get("/", tags=["main"], response_model=GlobalConfig)
-async def root():
+def root():
     """
     Returns information about the application.
     """

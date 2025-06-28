@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 
 set -e
-set -x
 
 if [ -z "$1" ]; then
   echo "Error: this script requires 1 argument"
-  echo "Usage: ./gen_migration [MESSAGE]"
+  echo "Usage: ./gen_migration.sh [MESSAGE]"
   exit 1
 fi
 
@@ -15,5 +14,6 @@ if [ -z "$IS_CONTAINER" ] || [ "$IS_CONTAINER" = "false" ] || [ "$IS_CONTAINER" 
 fi
 echo "Using database on server: $POSTGRES_SERVER"
 
+set -x
 #Generate a migration
 alembic revision --autogenerate -m "$1"

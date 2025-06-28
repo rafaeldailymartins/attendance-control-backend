@@ -12,6 +12,7 @@ EMOJIS = {
     "chore": "🔧",  # :wrench:
     "perf": "⚡️",  # :zap:
     "ci": "👷",  # :construction_worker:
+    "revert": "⏪️",  # :rewind:
 }
 
 
