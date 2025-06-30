@@ -1,0 +1,63 @@
+services:
+
+  db:
+    container_name: 'db'
+    image: postgres:17-alpine
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - attendance-control-db:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+
+  prestart:
+    container_name: 'prestart'
+    image: backend:latest
+    build:
+      context: .
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    command: bash scripts/prestart.sh
+    env_file:
+      - .env
+    environment:
+      IS_CONTAINER: true
+
+  backend:
+    container_name: 'backend'
+    build:
+      context: .
+      args:
+        PROJECT_NAME: ${PROJECT_NAME?Variable not set}
+    env_file:
+      - .env
+    environment:
+      IS_CONTAINER: true
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      prestart:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  attendance-control-db:
