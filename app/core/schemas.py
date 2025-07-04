@@ -18,3 +18,12 @@ class GlobalConfig(BaseSchema):
     docs_url: str | None = Field(examples=["/docs"])
     redoc_url: str | None = Field(examples=["/redoc"])
     openapi_url: str | None = Field(examples=["/openapi.json"])
+
+
+class Token(BaseSchema):
+    access_token: str
+    token_type: str = "Bearer"
+
+
+class TokenPayload(BaseSchema):
+    sub: str | None = None

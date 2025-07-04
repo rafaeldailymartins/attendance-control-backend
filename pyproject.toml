@@ -13,6 +13,8 @@ dependencies = [
     "fastapi-cli<1.0.0,>=0.0.7",
     "psycopg[binary]<4.0.0,>=3.2.9",
     "bcrypt>=4.3.0",
+    "python-multipart>=0.0.20",
+    "pyjwt>=2.10.1",
 ]
 
 [dependency-groups]
