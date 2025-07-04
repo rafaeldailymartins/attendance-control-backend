@@ -1,11 +1,17 @@
+import bcrypt
 from sqlmodel import Session, SQLModel, select
 
 from app.core.config import settings
 from app.core.models import AppConfig, Role, User
-from app.core.security import get_password_hash
 
 
-def db_insert(instance: SQLModel, session: Session):
+def init_db(session: Session):
+    create_admin_role(session)
+    create_first_admin(session=session)
+    populate_app_config(session=session)
+
+
+def db_insert(session: Session, instance: SQLModel):
     session.add(instance)
     session.commit()
     session.refresh(instance)
@@ -21,7 +27,7 @@ def create_admin_role(session: Session):
     admin_role = get_admin_role(session)
     if not admin_role:
         admin_role = Role(name=settings.ADMIN_ROLE_NAME)
-        db_insert(admin_role, session)
+        db_insert(session, admin_role)
 
     return admin_role
 
@@ -39,7 +45,7 @@ def create_first_admin(session: Session):
             name=settings.ADMIN_ROLE_NAME,
             role_id=admin_role.id,
         )
-        db_insert(admin, session)
+        db_insert(session, admin)
 
     return admin
 
@@ -51,6 +57,18 @@ def populate_app_config(session: Session):
             minutes_early=settings.DEFAULT_MINUTES_EARLY,
             minutes_late=settings.DEFAULT_MINUTES_LATE,
         )
-        db_insert(app_config, session)
+        db_insert(session, app_config)
 
     return app_config
+
+
+def verify_password(plain_password: str, hashed_password: str):
+    return bcrypt.checkpw(
+        bytes(plain_password, encoding="utf-8"),
+        bytes(hashed_password, encoding="utf-8"),
+    )
+
+
+def get_password_hash(password: str):
+    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    return hashed.decode("utf-8")
