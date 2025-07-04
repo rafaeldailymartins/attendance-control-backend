@@ -1,8 +1,10 @@
 from fastapi import APIRouter
 
+from app.api.users import service
 from app.api.users.deps import TokenDep
-from app.api.users.schemas import UserResponse
-from app.core.deps import CurrentUserDep
+from app.api.users.schemas import UserCreate, UserResponse
+from app.core.deps import CurrentUserDep, SessionDep
+from app.core.exceptions import BaseHTTPException
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -30,3 +32,19 @@ def get_current_user(current_user: CurrentUserDep):
     Get current authenticated user.
     """
     return current_user
+
+
+@router.post("/", response_model=UserResponse)
+def create_new_user(session: SessionDep, user_in: UserCreate):
+    """
+    Create new user
+    """
+    user = service.get_user_by_email(session=session, email=user_in.email)
+    if user:
+        raise BaseHTTPException(
+            status_code=400,
+            message="Já existe um usuário com este e-mail no sistema.",
+        )
+    user_create = UserCreate.model_validate(user_in)
+    user = service.create_user(session=session, user_create=user_create)
+    return user

@@ -1,5 +1,6 @@
 from sqlmodel import Session, select
 
+from app.api.users.schemas import UserCreate
 from app.core import service as core_service
 from app.core.models import User
 
@@ -17,3 +18,12 @@ def get_user_by_email(session: Session, email: str):
     statement = select(User).where(User.email == email)
     session_user = session.exec(statement).first()
     return session_user
+
+
+def create_user(session: Session, user_create: UserCreate):
+    user = User.model_validate(
+        user_create,
+        update={"password": core_service.get_password_hash(user_create.password)},
+    )
+    core_service.db_insert(session, user)
+    return user
