@@ -5,7 +5,7 @@ from app.core.models import AppConfig, Role, User
 from app.core.security import get_password_hash
 
 
-def db_insert(session: Session, instance: SQLModel):
+def db_insert(instance: SQLModel, session: Session):
     session.add(instance)
     session.commit()
     session.refresh(instance)
@@ -21,7 +21,7 @@ def create_admin_role(session: Session):
     admin_role = get_admin_role(session)
     if not admin_role:
         admin_role = Role(name=settings.ADMIN_ROLE_NAME)
-        db_insert(session, admin_role)
+        db_insert(admin_role, session)
 
     return admin_role
 
@@ -39,7 +39,7 @@ def create_first_admin(session: Session):
             name=settings.ADMIN_ROLE_NAME,
             role_id=admin_role.id,
         )
-        db_insert(session, admin)
+        db_insert(admin, session)
 
     return admin
 
@@ -51,6 +51,6 @@ def populate_app_config(session: Session):
             minutes_early=settings.DEFAULT_MINUTES_EARLY,
             minutes_late=settings.DEFAULT_MINUTES_LATE,
         )
-        db_insert(session, app_config)
+        db_insert(app_config, session)
 
     return app_config
