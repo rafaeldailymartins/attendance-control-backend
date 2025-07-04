@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import Depends
 from sqlmodel import Session, create_engine
 
-from app.api.core.config import settings
-from app.api.core.crud import create_admin_role, create_first_admin, populate_app_config
+from app.core.config import settings
+from app.core.crud import create_admin_role, create_first_admin, populate_app_config
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

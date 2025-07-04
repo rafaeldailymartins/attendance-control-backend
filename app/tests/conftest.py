@@ -2,8 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete
 
-from app.api.core.db import engine, init_db
-from app.api.core.models import AppConfig, Attendance, DayOff, Role, Shift, User
+from app.core.db import engine, init_db
+from app.core.models import AppConfig, Attendance, DayOff, Role, Shift, User
 from app.main import app
 
 
