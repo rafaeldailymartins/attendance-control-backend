@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status
 
-from app.api.users import service
+from app.api.users import crud
 from app.api.users.deps import TokenDep
 from app.api.users.schemas import UserCreate, UserResponse
 from app.core.deps import CurrentUserDep, SessionDep, check_admin
@@ -40,14 +40,14 @@ def create_new_user(session: SessionDep, user_in: UserCreate):
     """
     Create new user
     """
-    user = service.get_user_by_email(session=session, email=user_in.email)
+    user = crud.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise BaseHTTPException(
             status_code=400,
             message="Já existe um usuário com este e-mail no sistema.",
         )
     user_create = UserCreate.model_validate(user_in)
-    user = service.create_user(session=session, user_create=user_create)
+    user = crud.create_user(session=session, user_create=user_create)
     return user
 
 
@@ -56,7 +56,7 @@ def list_users(session: SessionDep):
     """
     Lists all users
     """
-    return service.list_users(session)
+    return crud.list_users(session)
 
 
 @router.get(
@@ -66,7 +66,7 @@ def get_user(session: SessionDep, user_id: int):
     """
     Get user by id
     """
-    user = service.get_user_by_id(session, user_id)
+    user = crud.get_user_by_id(session, user_id)
     if not user:
         raise BaseHTTPException(
             status_code=status.HTTP_404_NOT_FOUND, message="Usuário não encontrado"

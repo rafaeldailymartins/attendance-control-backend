@@ -1,15 +1,16 @@
 from sqlmodel import Session, select
 
 from app.api.users.schemas import UserCreate
-from app.core import service as core_service
+from app.core.crud import db_insert
 from app.core.models import User
+from app.core.security import get_password_hash, verify_password
 
 
 def authenticate(session: Session, email: str, password: str):
     db_user = get_user_by_email(session=session, email=email)
     if not db_user:
         return None
-    if not core_service.verify_password(password, db_user.password):
+    if not verify_password(password, db_user.password):
         return None
     return db_user
 
@@ -31,7 +32,7 @@ def get_user_by_email(session: Session, email: str):
 def create_user(session: Session, user_create: UserCreate):
     user = User.model_validate(
         user_create,
-        update={"password": core_service.get_password_hash(user_create.password)},
+        update={"password": get_password_hash(user_create.password)},
     )
-    core_service.db_insert(session, user)
+    db_insert(session, user)
     return user

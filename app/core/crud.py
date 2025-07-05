@@ -1,18 +1,8 @@
-from datetime import UTC, datetime, timedelta
-from typing import Any
-
-import bcrypt
-import jwt
 from sqlmodel import Session, SQLModel, select
 
 from app.core.config import settings
 from app.core.models import AppConfig, Role, User
-
-
-def init_db(session: Session):
-    create_admin_role(session)
-    create_first_admin(session=session)
-    populate_app_config(session=session)
+from app.core.security import get_password_hash
 
 
 def db_insert(session: Session, instance: SQLModel):
@@ -64,24 +54,3 @@ def populate_app_config(session: Session):
         db_insert(session, app_config)
 
     return app_config
-
-
-def verify_password(plain_password: str, hashed_password: str):
-    return bcrypt.checkpw(
-        bytes(plain_password, encoding="utf-8"),
-        bytes(hashed_password, encoding="utf-8"),
-    )
-
-
-def get_password_hash(password: str):
-    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-    return hashed.decode("utf-8")
-
-
-def create_jwt_token(subject: str | Any, expires_delta: timedelta):
-    expire = datetime.now(UTC) + expires_delta
-    to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(
-        to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
-    )
-    return encoded_jwt
