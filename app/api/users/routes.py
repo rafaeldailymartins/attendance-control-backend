@@ -1,9 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, status
 
 from app.api.users import service
 from app.api.users.deps import TokenDep
 from app.api.users.schemas import UserCreate, UserResponse
-from app.core.deps import CurrentUserDep, SessionDep
+from app.core.deps import CurrentUserDep, SessionDep, check_admin
 from app.core.exceptions import BaseHTTPException
 from app.core.schemas import Token
 
@@ -35,7 +35,7 @@ def get_current_user(current_user: CurrentUserDep):
     return current_user
 
 
-@router.post("/", response_model=UserResponse)
+@router.post("/", response_model=UserResponse, dependencies=[Depends(check_admin)])
 def create_new_user(session: SessionDep, user_in: UserCreate):
     """
     Create new user
@@ -48,4 +48,21 @@ def create_new_user(session: SessionDep, user_in: UserCreate):
         )
     user_create = UserCreate.model_validate(user_in)
     user = service.create_user(session=session, user_create=user_create)
+    return user
+
+
+@router.get("/", response_model=list[UserResponse], dependencies=[Depends(check_admin)])
+def list_users(session: SessionDep):
+    return service.list_users(session)
+
+
+@router.get(
+    "/{user_id}", response_model=UserResponse, dependencies=[Depends(check_admin)]
+)
+def get_user(session: SessionDep, user_id: int):
+    user = service.get_user_by_id(session, user_id)
+    if not user:
+        raise BaseHTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, message="Usuário não encontrado"
+        )
     return user

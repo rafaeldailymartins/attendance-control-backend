@@ -9,7 +9,7 @@ class UserBase(BaseSchema):
 
 
 class UserResponse(UserBase):
-    pass
+    id: int
 
 
 class UserCreate(UserBase):

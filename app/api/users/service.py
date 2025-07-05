@@ -14,6 +14,14 @@ def authenticate(session: Session, email: str, password: str):
     return db_user
 
 
+def list_users(session: Session):
+    return session.exec(select(User)).all()
+
+
+def get_user_by_id(session: Session, id: int):
+    return session.get(User, id)
+
+
 def get_user_by_email(session: Session, email: str):
     statement = select(User).where(User.email == email)
     session_user = session.exec(statement).first()

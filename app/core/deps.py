@@ -6,9 +6,14 @@ from fastapi.security import OAuth2PasswordBearer
 from pydantic import ValidationError
 from sqlmodel import Session
 
+from app.core import service
 from app.core.config import settings
 from app.core.db import get_session
-from app.core.exceptions import BaseHTTPException
+from app.core.exceptions import (
+    BaseHTTPException,
+    ForbiddenException,
+    InternalServerErrorException,
+)
 from app.core.models import User
 from app.core.schemas import TokenPayload
 
@@ -26,10 +31,7 @@ def get_current_user(
         )
         token_data = TokenPayload(**payload)
     except (jwt.InvalidTokenError, ValidationError):
-        raise BaseHTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            message="Não foi possível validar as credenciais",
-        )
+        raise ForbiddenException("Não foi possível validar as credenciais")
     user = session.get(User, token_data.sub)
     if not user:
         raise BaseHTTPException(
@@ -39,3 +41,11 @@ def get_current_user(
 
 
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
+
+
+def check_admin(session: SessionDep, current_user: CurrentUserDep):
+    admin_role = service.get_admin_role(session)
+    if not admin_role:
+        raise InternalServerErrorException()
+    if current_user.id != admin_role.id:
+        raise ForbiddenException()
