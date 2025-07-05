@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlmodel import Session, SQLModel, select
 
 from app.core.config import settings
@@ -9,6 +11,11 @@ def db_insert(session: Session, instance: SQLModel):
     session.add(instance)
     session.commit()
     session.refresh(instance)
+
+
+def db_update(session: Session, instance: SQLModel, data: dict[str, Any]):
+    instance.sqlmodel_update(data)
+    db_insert(session, instance)
 
 
 def get_admin_role(session: Session):

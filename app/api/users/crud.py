@@ -1,7 +1,9 @@
+from datetime import UTC, datetime
+
 from sqlmodel import Session, select
 
-from app.api.users.schemas import UserCreate
-from app.core.crud import db_insert
+from app.api.users.schemas import UserCreate, UserUpdate
+from app.core.crud import db_insert, db_update
 from app.core.models import User
 from app.core.security import get_password_hash, verify_password
 
@@ -35,4 +37,13 @@ def create_user(session: Session, user_create: UserCreate):
         update={"password": get_password_hash(user_create.password)},
     )
     db_insert(session, user)
+    return user
+
+
+def update_user(session: Session, user: User, user_update: UserUpdate):
+    user_data = user_update.model_dump(exclude_unset=True)
+    if "password" in user_data:
+        user_data["password"] = get_password_hash(user_data["password"])
+    user_data["updated_at"] = datetime.now(UTC)
+    db_update(session, user, user_data)
     return user
