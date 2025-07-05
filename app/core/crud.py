@@ -18,6 +18,11 @@ def db_update(session: Session, instance: SQLModel, data: dict[str, Any]):
     db_insert(session, instance)
 
 
+def db_delete(session: Session, instance: SQLModel):
+    session.delete(instance)
+    session.commit()
+
+
 def get_admin_role(session: Session):
     return session.exec(
         select(Role).where(Role.name == settings.ADMIN_ROLE_NAME)

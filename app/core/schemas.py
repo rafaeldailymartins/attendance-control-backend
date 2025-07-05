@@ -27,3 +27,7 @@ class Token(BaseSchema):
 
 class TokenPayload(BaseSchema):
     sub: str | None = None
+
+
+class Message(BaseSchema):
+    message: str

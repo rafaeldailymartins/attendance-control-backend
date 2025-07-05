@@ -3,15 +3,16 @@ from fastapi import APIRouter, Depends, status
 from app.api.users import crud
 from app.api.users.deps import TokenDep
 from app.api.users.schemas import UserCreate, UserResponse, UserUpdate
+from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, SessionDep, check_admin
-from app.core.exceptions import BaseHTTPException
-from app.core.schemas import Token
+from app.core.exceptions import BaseHTTPException, ForbiddenException
+from app.core.schemas import Message, Token
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/login", response_model=Token)
-def login(token: TokenDep):
+@router.post("/login")
+def login(token: TokenDep) -> Token:
     """
     OAuth2 compatible token login, get an access token for future requests
     """
@@ -43,7 +44,7 @@ def create_new_user(session: SessionDep, body: UserCreate):
     user = crud.get_user_by_email(session=session, email=body.email)
     if user:
         raise BaseHTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             message="Já existe um usuário com este e-mail no sistema.",
         )
     user_create = UserCreate.model_validate(body)
@@ -88,3 +89,21 @@ def update_user(session: SessionDep, user_id: int, body: UserUpdate):
         )
     crud.update_user(session, user, body)
     return user
+
+
+@router.delete("/{user_id}", dependencies=[Depends(check_admin)])
+def delete_user(
+    session: SessionDep, user_id: int, current_user: CurrentUserDep
+) -> Message:
+    """
+    Delete a user.
+    """
+    user = crud.get_user_by_id(session, user_id)
+    if not user:
+        raise BaseHTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, message="Usuário não encontrado"
+        )
+    if user == current_user:
+        raise ForbiddenException("Não é possível deletar a si mesmo")
+    db_delete(session, user)
+    return Message(message="User deleted successfully")
