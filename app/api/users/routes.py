@@ -53,6 +53,9 @@ def create_new_user(session: SessionDep, user_in: UserCreate):
 
 @router.get("/", response_model=list[UserResponse], dependencies=[Depends(check_admin)])
 def list_users(session: SessionDep):
+    """
+    Lists all users
+    """
     return service.list_users(session)
 
 
@@ -60,6 +63,9 @@ def list_users(session: SessionDep):
     "/{user_id}", response_model=UserResponse, dependencies=[Depends(check_admin)]
 )
 def get_user(session: SessionDep, user_id: int):
+    """
+    Get user by id
+    """
     user = service.get_user_by_id(session, user_id)
     if not user:
         raise BaseHTTPException(
