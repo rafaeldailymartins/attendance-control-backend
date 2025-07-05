@@ -5,11 +5,12 @@ from app.api.users.deps import TokenDep
 from app.api.users.schemas import UserCreate, UserResponse
 from app.core.deps import CurrentUserDep, SessionDep
 from app.core.exceptions import BaseHTTPException
+from app.core.schemas import Token
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/login")
+@router.post("/login", response_model=Token)
 def login(token: TokenDep):
     """
     OAuth2 compatible token login, get an access token for future requests
