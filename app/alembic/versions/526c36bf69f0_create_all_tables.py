@@ -1,8 +1,8 @@
 """create all tables
 
-Revision ID: 64e3ded1dbc7
+Revision ID: 526c36bf69f0
 Revises:
-Create Date: 2025-06-28 17:53:26.861470
+Create Date: 2025-07-06 18:08:52.447522
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision: str = '64e3ded1dbc7'
+revision: str = '526c36bf69f0'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -37,9 +37,9 @@ def upgrade() -> None:
     op.create_table('role',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('name')
+    sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_role_name'), 'role', ['name'], unique=True)
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('email', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
@@ -83,6 +83,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_user_name'), table_name='user')
     op.drop_index(op.f('ix_user_email'), table_name='user')
     op.drop_table('user')
+    op.drop_index(op.f('ix_role_name'), table_name='role')
     op.drop_table('role')
     op.drop_table('dayoff')
     op.drop_table('appconfig')
