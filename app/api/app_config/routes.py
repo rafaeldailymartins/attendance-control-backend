@@ -6,6 +6,7 @@ from app.api.app_config.schemas import (
     DayOffResponse,
     RoleCreate,
     RoleResponse,
+    RoleUpdate,
 )
 from app.core.deps import SessionDep, check_admin
 from app.core.exceptions import BaseHTTPException
@@ -39,4 +40,28 @@ def create_new_role(session: SessionDep, body: RoleCreate):
 
     role_create = RoleCreate.model_validate(body)
     role = crud.create_role(session, role_create)
+    return role
+
+
+@router.patch(
+    "/roles/{role_id}", response_model=RoleResponse, dependencies=[Depends(check_admin)]
+)
+def update_role(session: SessionDep, role_id: int, body: RoleUpdate):
+    """
+    Update a role
+    """
+    if body.name:
+        role = crud.get_role_by_name(session=session, name=body.name)
+        if role and role.id != role_id:
+            raise BaseHTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="Já existe um cargo com este nome no sistema.",
+            )
+
+    role = crud.get_role_by_id(session, role_id)
+    if not role:
+        raise BaseHTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
+        )
+    crud.update_role(session, role, body)
     return role

@@ -26,3 +26,7 @@ class RoleCreate(RoleBase):
 
 class RoleResponse(RoleBase):
     id: int
+
+
+class RoleUpdate(BaseSchema):
+    name: str | None = None

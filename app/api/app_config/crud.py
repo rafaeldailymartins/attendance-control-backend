@@ -1,7 +1,7 @@
 from sqlmodel import Session, select
 
-from app.api.app_config.schemas import DayOffCreate, RoleCreate
-from app.core.crud import db_insert
+from app.api.app_config.schemas import DayOffCreate, RoleCreate, RoleUpdate
+from app.core.crud import db_insert, db_update
 from app.core.models import DayOff, Role
 
 
@@ -25,3 +25,9 @@ def get_role_by_name(session: Session, name: str):
 
 def get_role_by_id(session: Session, id: int):
     return session.get(Role, id)
+
+
+def update_role(session: Session, role: Role, role_update: RoleUpdate):
+    role_data = role_update.model_dump(exclude_unset=True)
+    db_update(session, role, role_data)
+    return role
