@@ -49,11 +49,12 @@ def create_new_user(session: SessionDep, body: UserCreate):
             message="Já existe um usuário com este e-mail no sistema.",
         )
 
-    role = app_config_crud.get_role_by_id(session, body.role_id)
-    if not role:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
-        )
+    if body.role_id:
+        role = app_config_crud.get_role_by_id(session, body.role_id)
+        if not role:
+            raise BaseHTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
+            )
 
     user_create = UserCreate.model_validate(body)
     user = crud.create_user(session=session, user_create=user_create)
@@ -90,12 +91,13 @@ def update_user(session: SessionDep, user_id: int, body: UserUpdate):
     """
     Update a user
     """
-    user = crud.get_user_by_email(session=session, email=body.email)
-    if user and user.id != user_id:
-        raise BaseHTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            message="Já existe um usuário com este e-mail no sistema.",
-        )
+    if body.email:
+        user = crud.get_user_by_email(session=session, email=body.email)
+        if user and user.id != user_id:
+            raise BaseHTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="Já existe um usuário com este e-mail no sistema.",
+            )
     if body.role_id:
         role = app_config_crud.get_role_by_id(session, body.role_id)
         if not role:
