@@ -21,3 +21,7 @@ def get_role_by_name(session: Session, name: str):
     statement = select(Role).where(Role.name == name)
     session_role = session.exec(statement).first()
     return session_role
+
+
+def get_role_by_id(session: Session, id: int):
+    return session.get(Role, id)
