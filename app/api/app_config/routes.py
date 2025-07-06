@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 
 from app.api.app_config import crud
 from app.api.app_config.schemas import (
@@ -8,6 +8,7 @@ from app.api.app_config.schemas import (
     RoleResponse,
 )
 from app.core.deps import SessionDep, check_admin
+from app.core.exceptions import BaseHTTPException
 
 router = APIRouter(prefix="/config", tags=["config"])
 
@@ -29,6 +30,13 @@ def create_new_role(session: SessionDep, body: RoleCreate):
     """
     Create new role
     """
+    role = crud.get_role_by_name(session, body.name)
+    if role:
+        raise BaseHTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Já existe um cargo com este nome no sistema.",
+        )
+
     role_create = RoleCreate.model_validate(body)
     role = crud.create_role(session, role_create)
     return role
