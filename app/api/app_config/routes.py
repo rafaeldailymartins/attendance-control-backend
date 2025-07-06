@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, status
 
 from app.api.app_config import crud
 from app.api.app_config.schemas import (
+    AppConfigResponse,
+    AppConfigUpdate,
     DayOffCreate,
     DayOffResponse,
     RoleCreate,
@@ -65,3 +67,22 @@ def update_role(session: SessionDep, role_id: int, body: RoleUpdate):
         )
     crud.update_role(session, role, body)
     return role
+
+
+@router.patch(
+    "/", response_model=AppConfigResponse, dependencies=[Depends(check_admin)]
+)
+def update_app_config(session: SessionDep, body: AppConfigUpdate):
+    """
+    Update settings
+    """
+
+    app_config = crud.get_last_app_config(session)
+    if not app_config:
+        raise BaseHTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Ocorreu um erro no servidor e "
+            "não foi possível encontrar as configurações.",
+        )
+    crud.update_app_config(session, app_config, body)
+    return app_config

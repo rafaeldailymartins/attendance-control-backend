@@ -30,3 +30,17 @@ class RoleResponse(RoleBase):
 
 class RoleUpdate(BaseSchema):
     name: str | None = None
+
+
+class AppConfigBase(BaseSchema):
+    minutes_late: int
+    minutes_early: int
+
+
+class AppConfigResponse(AppConfigBase):
+    id: int
+
+
+class AppConfigUpdate(BaseSchema):
+    minutes_late: int | None = None
+    minutes_early: int | None = None
