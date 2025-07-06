@@ -13,4 +13,16 @@ class DayOffCreate(DayOffBase):
 
 
 class DayOffResponse(DayOffBase):
+    id: int
+
+
+class RoleBase(BaseSchema):
+    name: str
+
+
+class RoleCreate(RoleBase):
     pass
+
+
+class RoleResponse(RoleBase):
+    id: int
