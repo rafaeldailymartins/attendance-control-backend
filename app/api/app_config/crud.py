@@ -32,6 +32,10 @@ def get_role_by_id(session: Session, id: int):
     return session.get(Role, id)
 
 
+def get_day_off_by_id(session: Session, id: int):
+    return session.get(DayOff, id)
+
+
 def get_last_app_config(session: Session):
     statement = select(AppConfig).order_by(desc(AppConfig.id))
     session_app_config = session.exec(statement).first()

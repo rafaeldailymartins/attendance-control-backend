@@ -10,8 +10,10 @@ from app.api.app_config.schemas import (
     RoleResponse,
     RoleUpdate,
 )
+from app.core.crud import db_delete
 from app.core.deps import SessionDep, check_admin
 from app.core.exceptions import BaseHTTPException
+from app.core.schemas import Message
 
 router = APIRouter(prefix="/config", tags=["config"])
 
@@ -86,3 +88,17 @@ def update_app_config(session: SessionDep, body: AppConfigUpdate):
         )
     crud.update_app_config(session, app_config, body)
     return app_config
+
+
+@router.delete("/days-off/{day_off_id}", dependencies=[Depends(check_admin)])
+def delete_day_off(session: SessionDep, day_off_id: int) -> Message:
+    """
+    Delete a day off.
+    """
+    day_off = crud.get_day_off_by_id(session, day_off_id)
+    if not day_off:
+        raise BaseHTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, message="Dia livre não encontrado"
+        )
+    db_delete(session, day_off)
+    return Message(message="Dia livre deletado com sucesso")
