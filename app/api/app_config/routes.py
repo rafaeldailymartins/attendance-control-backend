@@ -102,3 +102,17 @@ def delete_day_off(session: SessionDep, day_off_id: int) -> Message:
         )
     db_delete(session, day_off)
     return Message(message="Dia livre deletado com sucesso")
+
+
+@router.delete("/roles/{role_id}", dependencies=[Depends(check_admin)])
+def delete_role(session: SessionDep, role_id: int) -> Message:
+    """
+    Delete a role.
+    """
+    role = crud.get_role_by_id(session, role_id)
+    if not role:
+        raise BaseHTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
+        )
+    db_delete(session, role)
+    return Message(message="Cargo deletado com sucesso")
