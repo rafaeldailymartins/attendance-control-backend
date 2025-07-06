@@ -14,7 +14,8 @@ def db_insert(session: Session, instance: SQLModel):
 
 
 def db_update(session: Session, instance: SQLModel, data: dict[str, Any]):
-    instance.sqlmodel_update(data)
+    for key, value in data.items():
+        setattr(instance, key, value)
     db_insert(session, instance)
 
 

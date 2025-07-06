@@ -82,6 +82,13 @@ def update_user(session: SessionDep, user_id: int, body: UserUpdate):
     """
     Update a user
     """
+    user = crud.get_user_by_email(session=session, email=body.email)
+    if user and user.id != user_id:
+        raise BaseHTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="Já existe um usuário com este e-mail no sistema.",
+        )
+
     user = crud.get_user_by_id(session, user_id)
     if not user:
         raise BaseHTTPException(
@@ -106,4 +113,4 @@ def delete_user(
     if user == current_user:
         raise ForbiddenException("Não é possível deletar a si mesmo")
     db_delete(session, user)
-    return Message(message="User deleted successfully")
+    return Message(message="Usuário deletado com sucesso")

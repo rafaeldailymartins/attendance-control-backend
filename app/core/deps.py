@@ -51,5 +51,5 @@ def check_admin(session: SessionDep, current_user: CurrentUserDep):
     admin_role = get_admin_role(session)
     if not admin_role:
         raise InternalServerErrorException()
-    if current_user.id != admin_role.id:
+    if current_user.role_id != admin_role.id:
         raise ForbiddenException()

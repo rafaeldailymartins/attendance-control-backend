@@ -25,7 +25,7 @@ def get_user_by_id(session: Session, id: int):
     return session.get(User, id)
 
 
-def get_user_by_email(session: Session, email: str):
+def get_user_by_email(session: Session, email: str | None):
     statement = select(User).where(User.email == email)
     session_user = session.exec(statement).first()
     return session_user
@@ -42,8 +42,11 @@ def create_user(session: Session, user_create: UserCreate):
 
 def update_user(session: Session, user: User, user_update: UserUpdate):
     user_data = user_update.model_dump(exclude_unset=True)
+
     if "password" in user_data:
         user_data["password"] = get_password_hash(user_data["password"])
+
     user_data["updated_at"] = datetime.now(UTC)
+
     db_update(session, user, user_data)
     return user
