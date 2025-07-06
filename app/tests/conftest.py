@@ -2,9 +2,10 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete
 
-from app.api.core.db import engine, init_db
-from app.api.core.models import AppConfig, Attendance, DayOff, Role, Shift, User
+from app.core.db import engine, init_db
+from app.core.models import AppConfig, Attendance, DayOff, Role, Shift, User
 from app.main import app
+from app.tests.utils import CORRECT_LOGIN_DATA
 
 
 @pytest.fixture(scope="module")
@@ -25,3 +26,17 @@ def db():
         session.exec(delete(DayOff))  # type: ignore
         session.exec(delete(AppConfig))  # type: ignore
         session.commit()
+
+
+@pytest.fixture(scope="module")
+def admin_token_headers(admin_token: str):
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    return headers
+
+
+@pytest.fixture(scope="module")
+def admin_token(client: TestClient) -> str:
+    response = client.post("/users/login", data=CORRECT_LOGIN_DATA)
+    result = response.json()
+    token = result["accessToken"]
+    return token

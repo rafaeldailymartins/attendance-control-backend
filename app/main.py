@@ -2,8 +2,9 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.core.config import settings
-from app.api.core.schemas import GlobalConfig
+from app.api import users
+from app.core.config import settings
+from app.core.schemas import GlobalConfig
 
 app = FastAPI(
     title=settings.TITLE,
@@ -21,6 +22,7 @@ if settings.cors_origins:
     )
 
 
+# Routes
 @app.get("/", tags=["main"], response_model=GlobalConfig)
 def root():
     """
@@ -36,6 +38,8 @@ def health_check() -> bool:
     """
     return True
 
+
+app.include_router(users.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

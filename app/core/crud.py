@@ -1,14 +1,27 @@
+from typing import Any
+
 from sqlmodel import Session, SQLModel, select
 
-from app.api.core.config import settings
-from app.api.core.models import AppConfig, Role, User
-from app.api.core.security import get_password_hash
+from app.core.config import settings
+from app.core.models import AppConfig, Role, User
+from app.core.security import get_password_hash
 
 
-def db_insert(instance: SQLModel, session: Session):
+def db_insert(session: Session, instance: SQLModel):
     session.add(instance)
     session.commit()
     session.refresh(instance)
+
+
+def db_update(session: Session, instance: SQLModel, data: dict[str, Any]):
+    for key, value in data.items():
+        setattr(instance, key, value)
+    db_insert(session, instance)
+
+
+def db_delete(session: Session, instance: SQLModel):
+    session.delete(instance)
+    session.commit()
 
 
 def get_admin_role(session: Session):
@@ -21,7 +34,7 @@ def create_admin_role(session: Session):
     admin_role = get_admin_role(session)
     if not admin_role:
         admin_role = Role(name=settings.ADMIN_ROLE_NAME)
-        db_insert(admin_role, session)
+        db_insert(session, admin_role)
 
     return admin_role
 
@@ -39,7 +52,7 @@ def create_first_admin(session: Session):
             name=settings.ADMIN_ROLE_NAME,
             role_id=admin_role.id,
         )
-        db_insert(admin, session)
+        db_insert(session, admin)
 
     return admin
 
@@ -51,6 +64,6 @@ def populate_app_config(session: Session):
             minutes_early=settings.DEFAULT_MINUTES_EARLY,
             minutes_late=settings.DEFAULT_MINUTES_LATE,
         )
-        db_insert(app_config, session)
+        db_insert(session, app_config)
 
     return app_config

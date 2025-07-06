@@ -1,3 +1,4 @@
+import secrets
 import warnings
 from typing import Annotated, Any, Literal, Self
 
@@ -34,6 +35,11 @@ class Settings(BaseSettings):
     TITLE: str = "Attendance Control API"
     VERSION: str
     DESCRIPTION: str = "The backend of the attendance control system"
+
+    # JWT
+    JWT_SECRET: str = secrets.token_urlsafe(32)
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRATION_MINUTES: int = 60 * 24 * 8
 
     # First admin settings
     ADMIN_ROLE_NAME: str = "admin"
