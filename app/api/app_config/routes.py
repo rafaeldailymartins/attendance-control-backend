@@ -146,3 +146,16 @@ def list_days_off(session: SessionDep):
     """
     days_off = crud.list_days_off(session)
     return days_off
+
+
+@router.get(
+    "/roles",
+    response_model=list[RoleResponse],
+    dependencies=[Depends(get_current_user)],
+)
+def list_roles(session: SessionDep):
+    """
+    Get all roles
+    """
+    roles = crud.list_roles(session)
+    return roles
