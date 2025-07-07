@@ -11,7 +11,7 @@ from app.api.app_config.schemas import (
     RoleUpdate,
 )
 from app.core.crud import db_delete
-from app.core.deps import SessionDep, check_admin
+from app.core.deps import SessionDep, check_admin, get_current_user
 from app.core.exceptions import BaseHTTPException
 from app.core.schemas import Message
 
@@ -116,3 +116,20 @@ def delete_role(session: SessionDep, role_id: int) -> Message:
         )
     db_delete(session, role)
     return Message(message="Cargo deletado com sucesso")
+
+
+@router.get(
+    "/", response_model=AppConfigResponse, dependencies=[Depends(get_current_user)]
+)
+def get_app_config(session: SessionDep):
+    """
+    Get settings
+    """
+    app_config = crud.get_last_app_config(session)
+    if not app_config:
+        raise BaseHTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            message="Ocorreu um erro no servidor e "
+            "não foi possível encontrar as configurações.",
+        )
+    return app_config
