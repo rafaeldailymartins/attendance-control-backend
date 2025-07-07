@@ -42,6 +42,10 @@ def get_last_app_config(session: Session):
     return session_app_config
 
 
+def list_days_off(session: Session):
+    return session.exec(select(DayOff)).all()
+
+
 def update_role(session: Session, role: Role, role_update: RoleUpdate):
     role_data = role_update.model_dump(exclude_unset=True)
     db_update(session, role, role_data)

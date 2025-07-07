@@ -133,3 +133,16 @@ def get_app_config(session: SessionDep):
             "não foi possível encontrar as configurações.",
         )
     return app_config
+
+
+@router.get(
+    "/days-off",
+    response_model=list[DayOffResponse],
+    dependencies=[Depends(get_current_user)],
+)
+def list_days_off(session: SessionDep):
+    """
+    Get all days off
+    """
+    days_off = crud.list_days_off(session)
+    return days_off
