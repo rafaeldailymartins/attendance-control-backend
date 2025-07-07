@@ -1,4 +1,5 @@
 from fastapi import status
+from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
@@ -67,11 +68,15 @@ def test_create_user(
 ):
     user_create = random_user_create()
 
-    response = client.post("/users", json=user_create.model_dump())
+    response = client.post(
+        "/users", json=jsonable_encoder(user_create, exclude_unset=True)
+    )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     response = client.post(
-        "/users", json=user_create.model_dump(), headers=admin_token_headers
+        "/users",
+        json=jsonable_encoder(user_create, exclude_unset=True),
+        headers=admin_token_headers,
     )
     result = response.json()
 
@@ -138,7 +143,6 @@ def test_update_user(
 
     response = client.patch(f"/users/{user.id}", headers=admin_token_headers, json=data)
     result = response.json()
-    assert response.status_code == 200
 
     assert response.status_code == status.HTTP_200_OK
     assert "id" in result

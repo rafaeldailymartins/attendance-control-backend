@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, status
 
+from app.api.app_config import crud as app_config_crud
 from app.api.users import crud
 from app.api.users.deps import TokenDep
 from app.api.users.schemas import UserCreate, UserResponse, UserUpdate
@@ -47,6 +48,14 @@ def create_new_user(session: SessionDep, body: UserCreate):
             status_code=status.HTTP_400_BAD_REQUEST,
             message="Já existe um usuário com este e-mail no sistema.",
         )
+
+    if body.role_id:
+        role = app_config_crud.get_role_by_id(session, body.role_id)
+        if not role:
+            raise BaseHTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
+            )
+
     user_create = UserCreate.model_validate(body)
     user = crud.create_user(session=session, user_create=user_create)
     return user
@@ -82,12 +91,19 @@ def update_user(session: SessionDep, user_id: int, body: UserUpdate):
     """
     Update a user
     """
-    user = crud.get_user_by_email(session=session, email=body.email)
-    if user and user.id != user_id:
-        raise BaseHTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            message="Já existe um usuário com este e-mail no sistema.",
-        )
+    if body.email:
+        user = crud.get_user_by_email(session=session, email=body.email)
+        if user and user.id != user_id:
+            raise BaseHTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                message="Já existe um usuário com este e-mail no sistema.",
+            )
+    if body.role_id:
+        role = app_config_crud.get_role_by_id(session, body.role_id)
+        if not role:
+            raise BaseHTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
+            )
 
     user = crud.get_user_by_id(session, user_id)
     if not user:

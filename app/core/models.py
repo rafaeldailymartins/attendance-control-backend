@@ -10,7 +10,7 @@ class ModelBase(SQLModel):
 
 
 class Role(ModelBase, table=True):
-    name: str = Field(unique=True)
+    name: str = Field(unique=True, index=True)
 
     users: list["User"] = Relationship(back_populates="role")
 
