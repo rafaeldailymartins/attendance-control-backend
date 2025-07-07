@@ -1,5 +1,6 @@
 import random
 import string
+from datetime import date, timedelta
 
 from app.core.config import settings
 
@@ -20,3 +21,9 @@ def random_lower_string() -> str:
 
 def random_email() -> str:
     return f"{random_lower_string()}@{random_lower_string()}.com"
+
+
+def random_date():
+    start = date.today()
+    offset = random.randint(0, 365)
+    return start - timedelta(days=offset)
