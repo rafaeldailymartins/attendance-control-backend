@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import app_config, users
+from app.api import app_config, shifts, users
 from app.core.config import settings
 from app.core.schemas import GlobalConfig
 
@@ -41,6 +41,7 @@ def health_check() -> bool:
 
 app.include_router(users.router)
 app.include_router(app_config.router)
+app.include_router(shifts.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
