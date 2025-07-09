@@ -16,7 +16,7 @@ class UserShiftResponse(ShiftBase):
 
 class UserResponse(UserBase):
     id: int
-    shifts: list[UserShiftResponse]
+    shifts: list[UserShiftResponse] = []
 
 
 class UserShiftCreate(ShiftBase):
@@ -25,7 +25,7 @@ class UserShiftCreate(ShiftBase):
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=50)
-    shifts: list[UserShiftCreate]
+    shifts: list[UserShiftCreate] = []
 
 
 class UserUpdate(BaseSchema):

@@ -1,4 +1,4 @@
-from sqlmodel import Session, delete
+from sqlmodel import Session, select
 
 from app.api.shifts.schemas import ShiftCreate, ShiftUpdate
 from app.core.crud import db_update
@@ -25,7 +25,11 @@ def update_shift(session: Session, shift: Shift, shift_update: ShiftUpdate):
 
 
 def clean_user_shifts(session: Session, user_id: int, commit: bool = True):
-    statement = delete(Shift).where(Shift.user_id == user_id)
-    session.exec(statement)
+    statement = select(Shift).where(Shift.user_id == user_id)
+    shifts = session.exec(statement)
+
+    for shift in shifts:
+        session.delete(shift)
+
     if commit:
         session.commit()

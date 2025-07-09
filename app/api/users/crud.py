@@ -64,6 +64,9 @@ def update_user(session: Session, user: User, user_update: UserUpdate):
 
     user_data["updated_at"] = datetime.now(UTC)
 
+    if user.id is None:
+        raise ValueError("User ID is None. Cannot associate shifts without a user ID.")
+
     if user_update.shifts:
         shifts_crud.clean_user_shifts(session, user.id, commit=False)
         shifts = [
