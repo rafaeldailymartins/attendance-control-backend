@@ -54,7 +54,7 @@ def update_role(session: SessionDep, role_id: int, body: RoleUpdate):
     """
     Update a role
     """
-    if body.name:
+    if body.name is not None:
         role = crud.get_role_by_name(session=session, name=body.name)
         if role and role.id != role_id:
             raise BaseHTTPException(

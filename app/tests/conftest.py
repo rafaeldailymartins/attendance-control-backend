@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete
 
+from app.api.users.schemas import UserResponse
 from app.core.db import engine, init_db
 from app.core.models import AppConfig, Attendance, DayOff, Role, Shift, User
 from app.main import app
@@ -25,6 +26,7 @@ def db():
         session.exec(delete(Role))  # type: ignore
         session.exec(delete(DayOff))  # type: ignore
         session.exec(delete(AppConfig))  # type: ignore
+        init_db(session)
         session.commit()
 
 
@@ -40,3 +42,10 @@ def admin_token(client: TestClient) -> str:
     result = response.json()
     token = result["accessToken"]
     return token
+
+
+@pytest.fixture(scope="module")
+def admin_user(client: TestClient, admin_token_headers: dict[str, str]):
+    response = client.post("/users/me", headers=admin_token_headers)
+    result = response.json()
+    return UserResponse(**result)

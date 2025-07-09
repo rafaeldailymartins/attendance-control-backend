@@ -1,6 +1,6 @@
 import random
 import string
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 
 from app.core.config import settings
 
@@ -27,3 +27,10 @@ def random_date():
     start = date.today()
     offset = random.randint(0, 365)
     return start - timedelta(days=offset)
+
+
+def random_time():
+    hour = random.randint(0, 23)
+    minute = random.randint(0, 59)
+    second = random.randint(0, 59)
+    return time(hour=hour, minute=minute, second=second)

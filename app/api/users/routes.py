@@ -49,7 +49,7 @@ def create_new_user(session: SessionDep, body: UserCreate):
             message="Já existe um usuário com este e-mail no sistema.",
         )
 
-    if body.role_id:
+    if body.role_id is not None:
         role = app_config_crud.get_role_by_id(session, body.role_id)
         if not role:
             raise BaseHTTPException(
@@ -91,14 +91,14 @@ def update_user(session: SessionDep, user_id: int, body: UserUpdate):
     """
     Update a user
     """
-    if body.email:
+    if body.email is not None:
         user = crud.get_user_by_email(session=session, email=body.email)
         if user and user.id != user_id:
             raise BaseHTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 message="Já existe um usuário com este e-mail no sistema.",
             )
-    if body.role_id:
+    if body.role_id is not None:
         role = app_config_crud.get_role_by_id(session, body.role_id)
         if not role:
             raise BaseHTTPException(
@@ -126,7 +126,7 @@ def delete_user(
         raise BaseHTTPException(
             status_code=status.HTTP_404_NOT_FOUND, message="Usuário não encontrado"
         )
-    if user == current_user:
+    if user.id == current_user.id:
         raise ForbiddenException("Não é possível deletar a si mesmo")
     db_delete(session, user)
     return Message(message="Usuário deletado com sucesso")
