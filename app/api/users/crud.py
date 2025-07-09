@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 from sqlmodel import Session, select
 
-from app.api.shifts.crud import create_shift
+from app.api.shifts import crud as shifts_crud
 from app.api.shifts.schemas import ShiftCreate
 from app.api.users.schemas import UserCreate, UserUpdate
 from app.core.crud import db_update
@@ -51,18 +51,27 @@ def create_user(session: Session, user_create: UserCreate):
     ]
 
     for shift in shifts:
-        create_shift(session, shift, commit=False)
+        shifts_crud.create_shift(session, shift, commit=False)
     session.commit()
     return user
 
 
 def update_user(session: Session, user: User, user_update: UserUpdate):
-    user_data = user_update.model_dump(exclude_unset=True)
+    user_data = user_update.model_dump(exclude_unset=True, exclude={"shifts"})
 
     if "password" in user_data:
         user_data["password"] = get_password_hash(user_data["password"])
 
     user_data["updated_at"] = datetime.now(UTC)
+
+    if user_update.shifts:
+        shifts_crud.clean_user_shifts(session, user.id, commit=False)
+        shifts = [
+            ShiftCreate(**shift.model_dump(), user_id=user.id)
+            for shift in user_update.shifts
+        ]
+        for shift in shifts:
+            shifts_crud.create_shift(session, shift, commit=False)
 
     db_update(session, user, user_data)
     return user
