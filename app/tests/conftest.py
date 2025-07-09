@@ -25,6 +25,7 @@ def db():
         session.exec(delete(Role))  # type: ignore
         session.exec(delete(DayOff))  # type: ignore
         session.exec(delete(AppConfig))  # type: ignore
+        init_db(session)
         session.commit()
 
 
