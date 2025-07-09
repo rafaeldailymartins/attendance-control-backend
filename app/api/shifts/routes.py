@@ -3,8 +3,10 @@ from fastapi import APIRouter, Depends, status
 from app.api.shifts import crud
 from app.api.shifts.schemas import ShiftCreate, ShiftResponse, ShiftUpdate
 from app.api.users import crud as users_crud
+from app.core.crud import db_delete
 from app.core.deps import SessionDep, check_admin
 from app.core.exceptions import BaseHTTPException
+from app.core.schemas import Message
 
 router = APIRouter(prefix="/shifts", tags=["shifts"])
 
@@ -47,3 +49,17 @@ def update_shift(session: SessionDep, shift_id: int, body: ShiftUpdate):
         )
     crud.update_shift(session, shift, body)
     return shift
+
+
+@router.delete("/{shift_id}", dependencies=[Depends(check_admin)])
+def delete_shift(session: SessionDep, shift_id: int) -> Message:
+    """
+    Delete a shift.
+    """
+    shift = crud.get_shift_by_id(session, shift_id)
+    if not shift:
+        raise BaseHTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, message="Turno não encontrado"
+        )
+    db_delete(session, shift)
+    return Message(message="Turno deletado com sucesso")
