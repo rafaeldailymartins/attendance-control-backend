@@ -1,6 +1,7 @@
 from sqlmodel import Session
 
-from app.api.shifts.schemas import ShiftCreate
+from app.api.shifts.schemas import ShiftCreate, ShiftUpdate
+from app.core.crud import db_update
 from app.core.models import Shift
 
 
@@ -10,4 +11,14 @@ def create_shift(session: Session, shift_create: ShiftCreate, commit: bool = Tru
     if commit:
         session.commit()
         session.refresh(shift)
+    return shift
+
+
+def get_shift_by_id(session: Session, id: int):
+    return session.get(Shift, id)
+
+
+def update_shift(session: Session, shift: Shift, shift_update: ShiftUpdate):
+    shift_data = shift_update.model_dump(exclude_unset=True)
+    db_update(session, shift, shift_data)
     return shift
