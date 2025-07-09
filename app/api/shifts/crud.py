@@ -33,3 +33,7 @@ def clean_user_shifts(session: Session, user_id: int, commit: bool = True):
 
     if commit:
         session.commit()
+
+
+def list_shifts(session: Session):
+    return session.exec(select(Shift)).all()

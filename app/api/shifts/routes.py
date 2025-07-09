@@ -63,3 +63,16 @@ def delete_shift(session: SessionDep, shift_id: int) -> Message:
         )
     db_delete(session, shift)
     return Message(message="Turno deletado com sucesso")
+
+
+@router.get(
+    "/",
+    response_model=list[ShiftResponse],
+    dependencies=[Depends(check_admin)],
+)
+def list_shifts(session: SessionDep):
+    """
+    Get all shifts
+    """
+    shifts = crud.list_shifts(session)
+    return shifts
