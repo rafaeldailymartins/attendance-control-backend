@@ -2,8 +2,10 @@ from datetime import UTC, datetime
 
 from sqlmodel import Session, select
 
+from app.api.shifts.crud import create_shift
+from app.api.shifts.schemas import ShiftCreate
 from app.api.users.schemas import UserCreate, UserUpdate
-from app.core.crud import db_insert, db_update
+from app.core.crud import db_update
 from app.core.models import User
 from app.core.security import get_password_hash, verify_password
 
@@ -33,10 +35,24 @@ def get_user_by_email(session: Session, email: str | None):
 
 def create_user(session: Session, user_create: UserCreate):
     user = User.model_validate(
-        user_create,
+        user_create.model_dump(exclude={"shifts"}),
         update={"password": get_password_hash(user_create.password)},
     )
-    db_insert(session, user)
+    session.add(user)
+    session.flush()
+    session.refresh(user)
+
+    if user.id is None:
+        raise ValueError("User ID is None. Cannot associate shifts without a user ID.")
+
+    shifts = [
+        ShiftCreate(**shift.model_dump(), user_id=user.id)
+        for shift in user_create.shifts
+    ]
+
+    for shift in shifts:
+        create_shift(session, shift, commit=False)
+    session.commit()
     return user
 
 

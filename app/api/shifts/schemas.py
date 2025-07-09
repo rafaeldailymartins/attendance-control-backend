@@ -8,15 +8,15 @@ class ShiftBase(BaseSchema):
     weekday: WeekdayEnum
     start_time: time
     end_time: time
-    user_id: int
 
 
 class ShiftCreate(ShiftBase):
-    pass
+    user_id: int
 
 
 class ShiftResponse(ShiftBase):
     id: int
+    user_id: int
 
 
 class ShiftUpdate(BaseSchema):
