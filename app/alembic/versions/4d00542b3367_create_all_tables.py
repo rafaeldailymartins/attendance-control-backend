@@ -1,8 +1,8 @@
 """create all tables
 
-Revision ID: 526c36bf69f0
+Revision ID: 4d00542b3367
 Revises:
-Create Date: 2025-07-06 18:08:52.447522
+Create Date: 2025-07-10 00:03:33.835997
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision: str = '526c36bf69f0'
+revision: str = '4d00542b3367'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -56,7 +56,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_user_name'), 'user', ['name'], unique=False)
     op.create_table('shift',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('weekday', sa.Enum('SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', name='weekdayenum'), nullable=False),
+    sa.Column('weekday', sa.Enum('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY', name='weekdayenum'), nullable=False),
     sa.Column('start_time', sa.Time(), nullable=False),
     sa.Column('end_time', sa.Time(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
