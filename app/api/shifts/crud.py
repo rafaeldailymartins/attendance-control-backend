@@ -24,10 +24,7 @@ def update_shift(session: Session, shift: Shift, shift_update: ShiftUpdate):
     return shift
 
 
-def clean_user_shifts(session: Session, user_id: int, commit: bool = True):
-    statement = select(Shift).where(Shift.user_id == user_id)
-    shifts = session.exec(statement)
-
+def delete_shifts(session: Session, shifts: list[Shift], commit: bool = True):
     for shift in shifts:
         session.delete(shift)
 

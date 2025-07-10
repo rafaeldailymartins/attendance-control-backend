@@ -68,7 +68,7 @@ def update_user(session: Session, user: User, user_update: UserUpdate):
         raise ValueError("User ID is None. Cannot associate shifts without a user ID.")
 
     if user_update.shifts:
-        shifts_crud.clean_user_shifts(session, user.id, commit=False)
+        shifts_crud.delete_shifts(session, user.shifts, commit=False)
         shifts = [
             ShiftCreate(**shift.model_dump(), user_id=user.id)
             for shift in user_update.shifts
