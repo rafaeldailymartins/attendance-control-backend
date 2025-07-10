@@ -23,8 +23,8 @@ def create_new_shift(session: SessionDep, body: ShiftCreate):
             message="Usuário não encontrado.",
         )
     shift_create = ShiftCreate.model_validate(body)
-    user = crud.create_shift(session=session, shift_create=shift_create)
-    return user
+    shift = crud.create_shift(session=session, shift_create=shift_create)
+    return shift
 
 
 @router.patch(
