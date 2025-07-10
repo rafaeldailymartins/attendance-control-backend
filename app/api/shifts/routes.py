@@ -1,11 +1,22 @@
 from fastapi import APIRouter, Depends, status
 
 from app.api.shifts import crud
-from app.api.shifts.schemas import ShiftCreate, ShiftResponse, ShiftUpdate
+from app.api.shifts.schemas import (
+    ShiftCreate,
+    ShiftResponse,
+    ShiftUpdate,
+    UserCurrentShiftResponse,
+)
 from app.api.users import crud as users_crud
+from app.core.config import settings
 from app.core.crud import db_delete
-from app.core.deps import SessionDep, check_admin
-from app.core.exceptions import BaseHTTPException
+from app.core.deps import CurrentUserDep, SessionDep, check_admin
+from app.core.exceptions import (
+    BaseHTTPException,
+    ForbiddenException,
+    InternalServerErrorException,
+)
+from app.core.models import AttendanceType
 from app.core.schemas import Message
 
 router = APIRouter(prefix="/shifts", tags=["shifts"])
@@ -76,3 +87,44 @@ def list_shifts(session: SessionDep):
     """
     shifts = crud.list_shifts(session)
     return shifts
+
+
+@router.get("/current", response_model=UserCurrentShiftResponse)
+def get_current_shift(
+    session: SessionDep,
+    user_id: int,
+    type: AttendanceType,
+    current_user: CurrentUserDep,
+):
+    """
+    Get the current shift based on the current datetime
+    """
+    is_admin = (
+        current_user.role is not None
+        and current_user.role.name == settings.ADMIN_ROLE_NAME
+    )
+    is_allowed = user_id == current_user.id or is_admin
+
+    if not is_allowed:
+        raise ForbiddenException()
+
+    user = users_crud.get_user_by_id(session=session, id=user_id)
+    if not user:
+        raise BaseHTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            message="Usuário não encontrado.",
+        )
+    shift = crud.get_current_shift(user, type)
+    shift_response = ShiftResponse.model_validate(shift) if shift else None
+    if shift:
+        return UserCurrentShiftResponse(message="OK", shift=shift_response)
+
+    if type == AttendanceType.CLOCK_IN:
+        return UserCurrentShiftResponse(message="Não há mais turnos hoje.", shift=None)
+
+    if type == AttendanceType.CLOCK_OUT:
+        return UserCurrentShiftResponse(
+            message="Você ainda não começou seu turno.", shift=None
+        )
+
+    raise InternalServerErrorException()

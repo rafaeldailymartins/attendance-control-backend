@@ -1,8 +1,10 @@
+from datetime import UTC, datetime
+
 from sqlmodel import Session, select
 
 from app.api.shifts.schemas import ShiftCreate, ShiftUpdate
 from app.core.crud import db_update
-from app.core.models import Shift
+from app.core.models import AttendanceType, Shift, User
 
 
 def create_shift(session: Session, shift_create: ShiftCreate, commit: bool = True):
@@ -34,3 +36,24 @@ def delete_shifts(session: Session, shifts: list[Shift], commit: bool = True):
 
 def list_shifts(session: Session):
     return session.exec(select(Shift)).all()
+
+
+def get_current_shift(user: User, type: AttendanceType) -> Shift | None:
+    now = datetime.now(UTC)
+    time_now = now.time()
+    weekday = now.weekday()
+    shifts = [shift for shift in user.shifts if shift.weekday == weekday]
+
+    if type == AttendanceType.CLOCK_IN:
+        shifts_sorted = sorted(shifts, key=lambda shift: shift.end_time)
+        next_shift = next(
+            (shift for shift in shifts_sorted if shift.end_time > time_now), None
+        )
+        return next_shift
+
+    if type == AttendanceType.CLOCK_OUT:
+        shifts_sorted = sorted(shifts, key=lambda shift: shift.start_time, reverse=True)
+        next_shift = next(
+            (shift for shift in shifts_sorted if shift.start_time < time_now), None
+        )
+        return next_shift
