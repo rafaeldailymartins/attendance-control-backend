@@ -8,8 +8,10 @@ from app.api.attendances.schemas import (
 )
 from app.api.shifts import crud as shifts_crud
 from app.core.config import settings
+from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, SessionDep, check_admin
 from app.core.exceptions import BaseHTTPException, ForbiddenException
+from app.core.schemas import Message
 
 router = APIRouter(prefix="/attendances", tags=["attendances"])
 
@@ -65,3 +67,17 @@ def update_attendance(session: SessionDep, attendance_id: int, body: AttendanceU
         )
     crud.update_attendance(session, attendance, body)
     return attendance
+
+
+@router.delete("/{attendance_id}", dependencies=[Depends(check_admin)])
+def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
+    """
+    Delete a attendance.
+    """
+    attendance = crud.get_attendance_by_id(session, attendance_id)
+    if not attendance:
+        raise BaseHTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, message="Registro não encontrado"
+        )
+    db_delete(session, attendance)
+    return Message(message="Registro deletado com sucesso")
