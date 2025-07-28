@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.api.app_config import crud as app_config_crud
 from app.api.attendances.schemas import AttendanceUpdate
@@ -55,3 +55,25 @@ def update_attendance(
     attendance_data = attendance_update.model_dump(exclude_unset=True)
     db_update(session, attendance, attendance_data)
     return attendance
+
+
+def list_attendances(
+    session: Session,
+    user_id: int | None = None,
+    type: AttendanceType | None = None,
+    start_datetime: datetime | None = None,
+    end_datetime: datetime | None = None,
+):
+    conditions = []
+
+    if user_id is not None:
+        conditions.append(Attendance.shift.has(Shift.user_id == user_id))
+    if type is not None:
+        conditions.append(Attendance.type == type)
+    if start_datetime is not None:
+        conditions.append(Attendance.datetime >= start_datetime)
+    if end_datetime is not None:
+        conditions.append(Attendance.datetime <= end_datetime)
+
+    statement = select(Attendance).where(*conditions)
+    return session.exec(statement).all()

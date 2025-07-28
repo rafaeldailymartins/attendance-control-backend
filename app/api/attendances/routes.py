@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, status
 
 from app.api.attendances import crud
@@ -7,10 +9,12 @@ from app.api.attendances.schemas import (
     AttendanceUpdate,
 )
 from app.api.shifts import crud as shifts_crud
+from app.api.users import crud as users_crud
 from app.core.config import settings
 from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, SessionDep, check_admin
 from app.core.exceptions import BaseHTTPException, ForbiddenException
+from app.core.models import AttendanceType
 from app.core.schemas import Message
 
 router = APIRouter(prefix="/attendances", tags=["attendances"])
@@ -81,3 +85,36 @@ def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
         )
     db_delete(session, attendance)
     return Message(message="Registro deletado com sucesso")
+
+
+@router.get(
+    "/",
+    response_model=list[AttendanceResponse],
+    dependencies=[Depends(check_admin)],
+)
+def list_attendances(
+    session: SessionDep,
+    user_id: int | None = None,
+    type: AttendanceType | None = None,
+    start_datetime: datetime | None = None,
+    end_datetime: datetime | None = None,
+):
+    """
+    List attendances
+    """
+    if user_id is not None:
+        user = users_crud.get_user_by_id(session=session, id=user_id)
+        if not user:
+            raise BaseHTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                message="Usuário não encontrado.",
+            )
+
+    attendances = crud.list_attendances(
+        session=session,
+        user_id=user_id,
+        type=type,
+        start_datetime=start_datetime,
+        end_datetime=end_datetime,
+    )
+    return attendances
