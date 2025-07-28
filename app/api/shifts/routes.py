@@ -93,7 +93,7 @@ def list_shifts(session: SessionDep):
 def get_current_shift(
     session: SessionDep,
     user_id: int,
-    type: AttendanceType,
+    attendance_type: AttendanceType,
     current_user: CurrentUserDep,
 ):
     """
@@ -114,15 +114,15 @@ def get_current_shift(
             status_code=status.HTTP_404_NOT_FOUND,
             message="Usuário não encontrado.",
         )
-    shift = crud.get_current_shift(user, type)
+    shift = crud.get_current_shift(user, attendance_type)
     shift_response = ShiftResponse.model_validate(shift) if shift else None
     if shift:
         return UserCurrentShiftResponse(message="OK", shift=shift_response)
 
-    if type == AttendanceType.CLOCK_IN:
+    if attendance_type == AttendanceType.CLOCK_IN:
         return UserCurrentShiftResponse(message="Não há mais turnos hoje.", shift=None)
 
-    if type == AttendanceType.CLOCK_OUT:
+    if attendance_type == AttendanceType.CLOCK_OUT:
         return UserCurrentShiftResponse(
             message="Você ainda não começou seu turno.", shift=None
         )

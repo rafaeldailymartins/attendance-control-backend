@@ -38,20 +38,20 @@ def list_shifts(session: Session):
     return session.exec(select(Shift)).all()
 
 
-def get_current_shift(user: User, type: AttendanceType) -> Shift | None:
+def get_current_shift(user: User, attendance_type: AttendanceType) -> Shift | None:
     now = datetime.now(UTC)
     time_now = now.time()
     weekday = now.weekday()
     shifts = [shift for shift in user.shifts if shift.weekday == weekday]
 
-    if type == AttendanceType.CLOCK_IN:
+    if attendance_type == AttendanceType.CLOCK_IN:
         shifts_sorted = sorted(shifts, key=lambda shift: shift.end_time)
         next_shift = next(
             (shift for shift in shifts_sorted if shift.end_time > time_now), None
         )
         return next_shift
 
-    if type == AttendanceType.CLOCK_OUT:
+    if attendance_type == AttendanceType.CLOCK_OUT:
         shifts_sorted = sorted(shifts, key=lambda shift: shift.start_time, reverse=True)
         next_shift = next(
             (shift for shift in shifts_sorted if shift.start_time < time_now), None

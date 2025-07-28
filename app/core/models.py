@@ -56,16 +56,16 @@ class AttendanceType(IntEnum):
 
 
 class Attendance(ModelBase, table=True):
-    datetime: datetime
+    timestamp: datetime
     minutes_late: int
-    type: AttendanceType
+    attendance_type: AttendanceType
     shift_id: int = Field(foreign_key="shift.id", nullable=False, ondelete="CASCADE")
 
     shift: Shift = Relationship(back_populates="attendances")
 
 
 class DayOff(ModelBase, table=True):
-    date: date
+    day: date
     description: str
 
 

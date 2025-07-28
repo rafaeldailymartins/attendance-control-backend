@@ -5,7 +5,7 @@ from app.core.schemas import BaseSchema
 
 
 class AttendanceBase(BaseSchema):
-    type: AttendanceType
+    attendance_type: AttendanceType
     shift_id: int
 
 
@@ -15,12 +15,12 @@ class AttendanceCreate(AttendanceBase):
 
 class AttendanceResponse(AttendanceBase):
     id: int
-    datetime: datetime
+    timestamp: datetime
     minutes_late: int
 
 
 class AttendanceUpdate(BaseSchema):
-    type: AttendanceType | None
-    shift_id: int | None
-    datetime: datetime | None
-    minutes_late: int | None
+    attendance_type: AttendanceType | None = None
+    shift_id: int | None = None
+    timestamp: datetime | None = None
+    minutes_late: int | None = None

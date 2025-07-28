@@ -4,7 +4,7 @@ from app.core.schemas import BaseSchema
 
 
 class DayOffBase(BaseSchema):
-    date: date
+    day: date
     description: str
 
 

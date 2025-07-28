@@ -1,8 +1,8 @@
 """create all tables
 
-Revision ID: 4d00542b3367
+Revision ID: 722338571b73
 Revises:
-Create Date: 2025-07-10 00:03:33.835997
+Create Date: 2025-07-27 23:30:14.679400
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision: str = '4d00542b3367'
+revision: str = '722338571b73'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,7 +30,7 @@ def upgrade() -> None:
     )
     op.create_table('dayoff',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('date', sa.Date(), nullable=False),
+    sa.Column('day', sa.Date(), nullable=False),
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -65,9 +65,9 @@ def upgrade() -> None:
     )
     op.create_table('attendance',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('datetime', sa.DateTime(), nullable=False),
+    sa.Column('timestamp', sa.DateTime(), nullable=False),
     sa.Column('minutes_late', sa.Integer(), nullable=False),
-    sa.Column('type', sa.Enum('CLOCK_IN', 'CLOCK_OUT', name='attendancetype'), nullable=False),
+    sa.Column('attendance_type', sa.Enum('CLOCK_IN', 'CLOCK_OUT', name='attendancetype'), nullable=False),
     sa.Column('shift_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['shift_id'], ['shift.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')

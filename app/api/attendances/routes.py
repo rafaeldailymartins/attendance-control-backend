@@ -43,7 +43,9 @@ def create_new_attendance(
     if not is_allowed:
         raise ForbiddenException()
 
-    attendance = crud.create_attendance(session=session, shift=shift, type=body.type)
+    attendance = crud.create_attendance(
+        session=session, shift=shift, attendance_type=body.attendance_type
+    )
     return attendance
 
 
@@ -95,9 +97,9 @@ def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
 def list_attendances(
     session: SessionDep,
     user_id: int | None = None,
-    type: AttendanceType | None = None,
-    start_datetime: datetime | None = None,
-    end_datetime: datetime | None = None,
+    attendance_type: AttendanceType | None = None,
+    start_timestamp: datetime | None = None,
+    end_timestamp: datetime | None = None,
 ):
     """
     List attendances
@@ -113,8 +115,8 @@ def list_attendances(
     attendances = crud.list_attendances(
         session=session,
         user_id=user_id,
-        type=type,
-        start_datetime=start_datetime,
-        end_datetime=end_datetime,
+        attendance_type=attendance_type,
+        start_timestamp=start_timestamp,
+        end_timestamp=end_timestamp,
     )
     return attendances
