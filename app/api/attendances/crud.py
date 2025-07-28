@@ -3,7 +3,8 @@ from datetime import UTC, datetime, timedelta
 from sqlmodel import Session
 
 from app.api.app_config import crud as app_config_crud
-from app.core.crud import db_insert
+from app.api.attendances.schemas import AttendanceUpdate
+from app.core.crud import db_insert, db_update
 from app.core.models import Attendance, AttendanceType, Shift
 
 
@@ -41,4 +42,16 @@ def create_attendance(session: Session, shift: Shift, type: AttendanceType):
         datetime=now, minutes_late=minutes_late, type=type, shift_id=shift.id
     )
     db_insert(session, attendance)
+    return attendance
+
+
+def get_attendance_by_id(session: Session, id: int):
+    return session.get(Attendance, id)
+
+
+def update_attendance(
+    session: Session, attendance: Attendance, attendance_update: AttendanceUpdate
+):
+    attendance_data = attendance_update.model_dump(exclude_unset=True)
+    db_update(session, attendance, attendance_data)
     return attendance
