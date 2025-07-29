@@ -27,7 +27,7 @@ class User(ModelBase, table=True):
     )
 
     role: Role | None = Relationship(back_populates="users")
-    shifts: list["Shift"] = Relationship(back_populates="user")
+    shifts: list["Shift"] = Relationship(back_populates="user", passive_deletes=True)
 
 
 class WeekdayEnum(IntEnum):
@@ -47,7 +47,9 @@ class Shift(ModelBase, table=True):
     user_id: int = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
 
     user: User = Relationship(back_populates="shifts")
-    attendances: list["Attendance"] = Relationship(back_populates="shift")
+    attendances: list["Attendance"] = Relationship(
+        back_populates="shift", passive_deletes=True
+    )
 
 
 class AttendanceType(IntEnum):

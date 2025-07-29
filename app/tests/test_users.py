@@ -1,34 +1,67 @@
+import random
+
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from sqlmodel import Session, select
 
 from app.api.users import crud
-from app.api.users.schemas import UserCreate
+from app.api.users.schemas import UserCreate, UserShiftCreate
 from app.core.config import settings
 from app.core.deps import get_current_user
-from app.core.models import User
+from app.core.models import User, WeekdayEnum
 from app.core.security import verify_password
+from app.tests.test_shifts import assert_all_shift_fields
 from app.tests.utils import (
     CORRECT_LOGIN_DATA,
     INCORRECT_LOGIN_DATA,
     random_email,
     random_lower_string,
+    random_time,
 )
 
 
-def random_user_create():
+def random_user_create(role_id: int | None = None):
     email = random_email()
     password = random_lower_string()
     name = random_lower_string()
-    user = UserCreate(email=email, name=name, password=password)
+    shifts = [
+        UserShiftCreate(
+            weekday=WeekdayEnum(random.randint(0, 6)),
+            start_time=random_time(),
+            end_time=random_time(),
+        )
+    ]
+    user = UserCreate(
+        email=email, name=name, password=password, shifts=shifts, role_id=role_id
+    )
     return user
 
 
-def assert_all_user_fields(user):
+def assert_all_user_fields(
+    user,
+    id: int | None = None,
+    email: str | None = None,
+    name: str | None = None,
+    role_id: int | None = None,
+):
     assert "email" in user
     assert "name" in user
+    assert "roleId" in user
+    assert "shifts" in user
     assert "id" in user
+
+    if id is not None:
+        assert user["id"] == id
+    if email is not None:
+        assert user["email"] == email
+    if name is not None:
+        assert user["name"] == name
+    if role_id is not None:
+        assert user["roleId"] == role_id
+
+    for shift in user["shifts"]:
+        assert_all_shift_fields(shift)
 
 
 def test_login(client: TestClient):
@@ -81,14 +114,18 @@ def test_create_user(
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
-    assert "id" in result
-    assert result["email"] == user_create.email
-    assert result["name"] == user_create.name
+    assert_all_user_fields(
+        result,
+        email=user_create.email,
+        name=user_create.name,
+        role_id=user_create.role_id,
+    )
 
     user_db = db.get(User, result["id"])
     assert user_db
     assert user_db.email == user_create.email
     assert user_db.name == user_create.name
+    assert user_db.role_id == user_create.role_id
     assert verify_password(user_create.password, user_db.password)
 
 
@@ -118,9 +155,9 @@ def test_get_user_by_id(
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
-    assert result["id"] == user.id
-    assert result["email"] == user.email
-    assert result["name"] == user.name
+    assert_all_user_fields(
+        result, id=user.id, email=user.email, name=user.name, role_id=user.role_id
+    )
 
 
 def test_update_user(
@@ -145,9 +182,9 @@ def test_update_user(
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
-    assert "id" in result
-    assert result["email"] == user.email
-    assert result["name"] == data["name"]
+    assert_all_user_fields(
+        result, email=user.email, name=data["name"], role_id=user.role_id
+    )
 
     user_db = db.get(User, user.id)
     db.refresh(user_db)
