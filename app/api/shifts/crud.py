@@ -34,8 +34,13 @@ def delete_shifts(session: Session, shifts: list[Shift], commit: bool = True):
         session.commit()
 
 
-def list_shifts(session: Session):
-    return session.exec(select(Shift)).all()
+def list_shifts(session: Session, user_id: int | None = None):
+    statement = select(Shift)
+
+    if user_id is not None:
+        statement = statement.where(Shift.user_id == user_id)
+
+    return session.exec(statement).all()
 
 
 def get_current_shift(user: User, attendance_type: AttendanceType) -> Shift | None:

@@ -81,11 +81,11 @@ def delete_shift(session: SessionDep, shift_id: int) -> Message:
     response_model=list[ShiftResponse],
     dependencies=[Depends(check_admin)],
 )
-def list_shifts(session: SessionDep):
+def list_shifts(session: SessionDep, user_id: int | None = None):
     """
     Get all shifts
     """
-    shifts = crud.list_shifts(session)
+    shifts = crud.list_shifts(session, user_id=user_id)
     return shifts
 
 
