@@ -11,7 +11,6 @@ from app.core.config import settings
 from app.core.deps import get_current_user
 from app.core.models import User, WeekdayEnum
 from app.core.security import verify_password
-from app.tests.test_shifts import assert_all_shift_fields
 from app.tests.utils import (
     CORRECT_LOGIN_DATA,
     INCORRECT_LOGIN_DATA,
@@ -61,7 +60,10 @@ def assert_all_user_fields(
         assert user["roleId"] == role_id
 
     for shift in user["shifts"]:
-        assert_all_shift_fields(shift)
+        assert "weekday" in shift
+        assert "startTime" in shift
+        assert "endTime" in shift
+        assert "id" in shift
 
 
 def test_login(client: TestClient):

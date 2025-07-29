@@ -1,5 +1,4 @@
 import random
-from datetime import time
 
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -21,25 +20,6 @@ def random_shift_create(user_id: int):
         user_id=user_id,
     )
     return shift_create
-
-
-def assert_all_shift_fields(
-    shift,
-    weekday: WeekdayEnum | None = None,
-    start_time: time | None = None,
-    end_time: WeekdayEnum | None = None,
-):
-    assert "weekday" in shift
-    assert "startTime" in shift
-    assert "endTime" in shift
-    assert "id" in shift
-
-    if weekday is not None:
-        assert shift["weekday"] == weekday
-    if start_time is not None:
-        assert shift["startTime"] == start_time
-    if end_time is not None:
-        assert shift["endTime"] == end_time
 
 
 def test_create_new_shift(
