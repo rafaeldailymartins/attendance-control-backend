@@ -21,7 +21,7 @@ class User(ModelBase, table=True):
     name: str = Field(index=True)
     active: bool = Field(default=True)
     created_at: datetime = Field(default=datetime.now(UTC))
-    updated_at: datetime | None = Field(default=None)
+    updated_shifts_at: datetime | None = Field(default=None)
     role_id: int | None = Field(
         default=None, foreign_key="role.id", nullable=True, ondelete="SET NULL"
     )

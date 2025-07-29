@@ -106,7 +106,14 @@ def list_absences(
 
     for dt in list_dates(start_date, end_date):
         for shift in shifts:
-            if dt.weekday() == shift.weekday:
+            if (
+                dt.weekday() == shift.weekday
+                and dt >= shift.user.created_at.date()
+                and (
+                    shift.user.updated_shifts_at is None
+                    or dt >= shift.user.updated_shifts_at.date()
+                )
+            ):
                 dates.append(ShiftDate(day=dt, shift_id=shift.id))
 
     attendances = list_attendances(
