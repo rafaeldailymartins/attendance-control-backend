@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, status
 
 from app.api.attendances import crud
 from app.api.attendances.schemas import (
+    AbsenceResponse,
     AttendanceCreate,
     AttendanceResponse,
     AttendanceUpdate,
@@ -89,11 +90,7 @@ def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
     return Message(message="Registro deletado com sucesso")
 
 
-@router.get(
-    "/",
-    response_model=list[AttendanceResponse],
-    dependencies=[Depends(check_admin)],
-)
+@router.get("/", response_model=list[AttendanceResponse])
 def list_attendances(
     session: SessionDep,
     user_id: int | None = None,
@@ -120,3 +117,46 @@ def list_attendances(
         end_timestamp=end_timestamp,
     )
     return attendances
+
+
+@router.get(
+    "/absences",
+    response_model=list[AbsenceResponse],
+)
+def list_absences(
+    session: SessionDep,
+    current_user: CurrentUserDep,
+    start_date: date,
+    end_date: date,
+    user_id: int | None = None,
+    absence_type: AttendanceType | None = None,
+):
+    """
+    List absences
+    """
+
+    is_admin = (
+        current_user.role is not None
+        and current_user.role.name == settings.ADMIN_ROLE_NAME
+    )
+    is_allowed = user_id == current_user.id or is_admin
+
+    if not is_allowed:
+        raise ForbiddenException()
+
+    if user_id is not None:
+        user = users_crud.get_user_by_id(session=session, id=user_id)
+        if not user:
+            raise BaseHTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                message="Usuário não encontrado.",
+            )
+
+    absences = crud.list_absences(
+        session=session,
+        user_id=user_id,
+        absence_type=absence_type,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    return absences

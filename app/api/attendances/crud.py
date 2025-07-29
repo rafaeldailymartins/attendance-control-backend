@@ -1,11 +1,13 @@
-from datetime import UTC, datetime, timedelta
+from collections import defaultdict
+from datetime import UTC, date, datetime, time, timedelta
 
 from sqlmodel import Session, select
 
 from app.api.app_config import crud as app_config_crud
-from app.api.attendances.schemas import AttendanceUpdate
+from app.api.attendances.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
+from app.api.shifts import crud as shifts_crud
 from app.core.crud import db_insert, db_update
-from app.core.models import Attendance, AttendanceType, Shift
+from app.core.models import Attendance, AttendanceType, Shift, WeekdayEnum
 
 
 def get_minutes_late(
@@ -79,3 +81,90 @@ def list_attendances(
         statement = statement.where(Attendance.timestamp <= end_timestamp)
 
     return session.exec(statement).all()
+
+
+def list_dates(start_date: date, end_date: date):
+    return [
+        start_date + timedelta(days=i) for i in range((end_date - start_date).days + 1)
+    ]
+
+
+def list_absences(
+    session: Session,
+    start_date: date,
+    end_date: date,
+    user_id: int | None = None,
+    absence_type: AttendanceType | None = None,
+):
+    shifts = shifts_crud.list_shifts(session, user_id)
+
+    shifts_by_weekday: defaultdict[WeekdayEnum, list[Shift]] = defaultdict(list[Shift])
+    for shift in shifts:
+        shifts_by_weekday[shift.weekday].append(shift)
+
+    dates: list[ShiftDate] = []
+
+    for dt in list_dates(start_date, end_date):
+        for shift in shifts:
+            if dt.weekday() == shift.weekday:
+                dates.append(ShiftDate(day=dt, shift_id=shift.id))
+
+    attendances = list_attendances(
+        session=session,
+        start_timestamp=datetime.combine(start_date, time()),
+        end_timestamp=datetime.combine(end_date, time()),
+        attendance_type=absence_type,
+        user_id=user_id,
+    )
+
+    absences: list[AbsenceResponse] = []
+    for entry in dates:
+        clock_in_ids = [
+            attendance.shift_id
+            for attendance in attendances
+            if entry.day == attendance.timestamp.date()
+            and attendance.attendance_type == AttendanceType.CLOCK_IN
+        ]
+        clock_out_ids = [
+            attendance.shift_id
+            for attendance in attendances
+            if entry.day == attendance.timestamp.date()
+            and attendance.attendance_type == AttendanceType.CLOCK_OUT
+        ]
+
+        if entry.shift_id not in clock_in_ids and absence_type in (
+            None,
+            AttendanceType.CLOCK_IN,
+        ):
+            absences.append(
+                AbsenceResponse(
+                    shift_id=entry.shift_id,
+                    day=entry.day,
+                    absence_type=AttendanceType.CLOCK_IN,
+                )
+            )
+        if entry.shift_id not in clock_out_ids and absence_type in (
+            None,
+            AttendanceType.CLOCK_OUT,
+        ):
+            absences.append(
+                AbsenceResponse(
+                    shift_id=entry.shift_id,
+                    day=entry.day,
+                    absence_type=AttendanceType.CLOCK_OUT,
+                )
+            )
+
+    for attendance in attendances:
+        if attendance.minutes_late > 0:
+            absences.append(
+                AbsenceResponse(
+                    shift_id=attendance.shift_id,
+                    day=attendance.timestamp.date(),
+                    absence_type=attendance.attendance_type,
+                    attendance_timestamp=attendance.timestamp,
+                    minutes_late=attendance.minutes_late,
+                )
+            )
+
+    return absences
