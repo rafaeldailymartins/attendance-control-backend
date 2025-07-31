@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import UTC, datetime
 
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -154,9 +154,10 @@ def test_get_absences(
     db.exec(delete(Attendance))  # type: ignore
     db.commit()
 
+    today = datetime.now(UTC).date().isoformat()
     params = {
-        "start_date": date.today().isoformat(),
-        "end_date": date.today().isoformat(),
+        "start_date": today,
+        "end_date": today,
     }
 
     response = client.get("/attendances/absences")
