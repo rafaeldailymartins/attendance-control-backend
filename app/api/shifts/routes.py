@@ -114,7 +114,7 @@ def get_current_shift(
             status_code=status.HTTP_404_NOT_FOUND,
             message="Usuário não encontrado.",
         )
-    shift = crud.get_current_shift(user, attendance_type)
+    shift = crud.get_current_shift(session, user, attendance_type)
     shift_response = ShiftResponse.model_validate(shift) if shift else None
     if shift:
         return UserCurrentShiftResponse(message="OK", shift=shift_response)

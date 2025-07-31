@@ -1,7 +1,9 @@
-from datetime import UTC, datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from sqlmodel import Session, select
 
+from app.api.app_config import crud as app_config_crud
 from app.api.shifts import crud as shifts_crud
 from app.api.shifts.schemas import ShiftCreate
 from app.api.users.schemas import UserCreate, UserUpdate
@@ -57,12 +59,18 @@ def create_user(session: Session, user_create: UserCreate):
 
 
 def update_user(session: Session, user: User, user_update: UserUpdate):
+    app_config = app_config_crud.get_last_app_config(session)
+    if not app_config:
+        raise ValueError(
+            "Ocorreu um erro no servidor e não foi possível encontrar as configurações."
+        )
+
     user_data = user_update.model_dump(exclude_unset=True, exclude={"shifts"})
 
     if "password" in user_data:
         user_data["password"] = get_password_hash(user_data["password"])
 
-    user_data["updated_shifts_at"] = datetime.now(UTC)
+    user_data["updated_shifts_at"] = datetime.now(ZoneInfo(app_config.zone_info))
 
     if user.id is None:
         raise ValueError("User ID is None. Cannot associate shifts without a user ID.")

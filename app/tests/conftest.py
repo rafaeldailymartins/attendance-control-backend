@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete
 
+from app.api.app_config import crud as app_config_crud
 from app.core.db import engine, init_db
 from app.core.deps import get_current_user
 from app.core.models import AppConfig, Attendance, DayOff, Role, Shift, User
@@ -47,3 +48,13 @@ def admin_token(client: TestClient) -> str:
 @pytest.fixture(scope="module")
 def admin_user(db: Session, admin_token: str):
     return get_current_user(db, admin_token)
+
+
+@pytest.fixture(scope="session")
+def app_config(db: Session):
+    app_config = app_config_crud.get_last_app_config(db)
+    if not app_config:
+        raise ValueError(
+            "Ocorreu um erro no servidor e não foi possível encontrar as configurações."
+        )
+    return app_config

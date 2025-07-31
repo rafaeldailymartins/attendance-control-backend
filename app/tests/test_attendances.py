@@ -1,4 +1,5 @@
-from datetime import UTC, datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -8,8 +9,8 @@ from sqlmodel import Session, delete, select
 from app.api.attendances import crud
 from app.api.attendances.schemas import AttendanceCreate
 from app.api.shifts import crud as shifts_crud
-from app.core.models import Attendance, AttendanceType, User
-from app.tests.test_shifts import now_shift_create
+from app.core.models import AppConfig, Attendance, AttendanceType, User
+from app.tests.test_shifts import new_shift_create
 
 
 def test_create_new_attendance(
@@ -17,10 +18,13 @@ def test_create_new_attendance(
     db: Session,
     admin_token_headers: dict[str, str],
     admin_user: User,
+    app_config: AppConfig,
 ):
     assert admin_user.id is not None
 
-    shift_create = now_shift_create(admin_user.id)
+    shift_create = new_shift_create(
+        admin_user.id, datetime.now(ZoneInfo(app_config.zone_info))
+    )
     shift = shifts_crud.create_shift(db, shift_create)
 
     attendance_create = AttendanceCreate(
@@ -53,10 +57,13 @@ def test_update_attendance(
     db: Session,
     admin_token_headers: dict[str, str],
     admin_user: User,
+    app_config: AppConfig,
 ):
     assert admin_user.id is not None
 
-    shift_create = now_shift_create(admin_user.id)
+    shift_create = new_shift_create(
+        admin_user.id, datetime.now(ZoneInfo(app_config.zone_info))
+    )
     shift = shifts_crud.create_shift(db, shift_create)
 
     attendance = crud.create_attendance(db, shift, AttendanceType.CLOCK_IN)
@@ -92,10 +99,13 @@ def test_delete_attendance(
     db: Session,
     admin_token_headers: dict[str, str],
     admin_user: User,
+    app_config: AppConfig,
 ):
     assert admin_user.id is not None
 
-    shift_create = now_shift_create(admin_user.id)
+    shift_create = new_shift_create(
+        admin_user.id, datetime.now(ZoneInfo(app_config.zone_info))
+    )
     shift = shifts_crud.create_shift(db, shift_create)
 
     attendance = crud.create_attendance(db, shift, AttendanceType.CLOCK_IN)
@@ -119,10 +129,13 @@ def test_get_attendances(
     db: Session,
     admin_token_headers: dict[str, str],
     admin_user: User,
+    app_config: AppConfig,
 ):
     assert admin_user.id is not None
 
-    shift_create = now_shift_create(admin_user.id)
+    shift_create = new_shift_create(
+        admin_user.id, datetime.now(ZoneInfo(app_config.zone_info))
+    )
     shift = shifts_crud.create_shift(db, shift_create)
 
     crud.create_attendance(db, shift, AttendanceType.CLOCK_IN)
@@ -145,16 +158,19 @@ def test_get_absences(
     db: Session,
     admin_token_headers: dict[str, str],
     admin_user: User,
+    app_config: AppConfig,
 ):
     assert admin_user.id is not None
 
-    shift_create = now_shift_create(admin_user.id)
+    shift_create = new_shift_create(
+        admin_user.id, datetime.now(ZoneInfo(app_config.zone_info))
+    )
     shifts_crud.create_shift(db, shift_create)
 
     db.exec(delete(Attendance))  # type: ignore
     db.commit()
 
-    today = datetime.now(UTC).date().isoformat()
+    today = datetime.now(ZoneInfo(app_config.zone_info)).date().isoformat()
     params = {
         "start_date": today,
         "end_date": today,

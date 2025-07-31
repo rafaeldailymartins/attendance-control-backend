@@ -1,5 +1,6 @@
 from collections import defaultdict
-from datetime import UTC, date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
+from zoneinfo import ZoneInfo
 
 from sqlmodel import Session, select
 
@@ -7,39 +8,44 @@ from app.api.app_config import crud as app_config_crud
 from app.api.attendances.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
 from app.api.shifts import crud as shifts_crud
 from app.core.crud import db_insert, db_update
-from app.core.models import Attendance, AttendanceType, Shift, WeekdayEnum
+from app.core.models import AppConfig, Attendance, AttendanceType, Shift, WeekdayEnum
 
 
 def get_minutes_late(
-    session: Session,
+    app_config: AppConfig,
     shift: Shift,
     attendance_type: AttendanceType,
     dt: datetime,
 ):
-    app_config = app_config_crud.get_last_app_config(session)
-    if not app_config:
-        raise ValueError(
-            "Ocorreu um erro no servidor e não foi possível encontrar as configurações."
-        )
-
+    zone_info = ZoneInfo(app_config.zone_info)
     delta = timedelta(minutes=0)
 
     if attendance_type == AttendanceType.CLOCK_IN:
-        shift_start_datetime = datetime.combine(dt.date(), shift.start_time, tzinfo=UTC)
+        shift_start_datetime = datetime.combine(
+            dt.date(), shift.start_time, tzinfo=zone_info
+        )
         delta = dt - shift_start_datetime
         minutes = int(delta.total_seconds() // 60)
         return max(minutes, 0) if minutes > app_config.minutes_late else 0
 
     if attendance_type == AttendanceType.CLOCK_OUT:
-        shift_end_datetime = datetime.combine(dt.date(), shift.end_time, tzinfo=UTC)
+        shift_end_datetime = datetime.combine(
+            dt.date(), shift.end_time, tzinfo=zone_info
+        )
         delta = shift_end_datetime - dt
         minutes = int(delta.total_seconds() // 60)
         return max(minutes, 0) if minutes > app_config.minutes_early else 0
 
 
 def create_attendance(session: Session, shift: Shift, attendance_type: AttendanceType):
-    now = datetime.now(UTC)
-    minutes_late = get_minutes_late(session, shift, attendance_type, now)
+    app_config = app_config_crud.get_last_app_config(session)
+    if not app_config:
+        raise ValueError(
+            "Ocorreu um erro no servidor e não foi possível encontrar as configurações."
+        )
+
+    now = datetime.now(ZoneInfo(app_config.zone_info))
+    minutes_late = get_minutes_late(app_config, shift, attendance_type, now)
     attendance = Attendance(
         timestamp=now,
         minutes_late=minutes_late,
