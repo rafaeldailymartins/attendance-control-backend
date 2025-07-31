@@ -1,4 +1,5 @@
 import random
+from datetime import UTC, datetime, time, timedelta
 
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -7,8 +8,7 @@ from sqlmodel import Session, select
 
 from app.api.shifts import crud
 from app.api.shifts.schemas import ShiftCreate
-from app.api.users.schemas import UserResponse
-from app.core.models import Shift, WeekdayEnum
+from app.core.models import Shift, User, WeekdayEnum
 from app.tests.utils import random_time
 
 
@@ -22,12 +22,33 @@ def random_shift_create(user_id: int):
     return shift_create
 
 
+def now_shift_create(user_id: int):
+    start_datetime = datetime.now(UTC)
+    end_datetime = start_datetime + timedelta(hours=1)
+
+    start_time = start_datetime.time().replace(microsecond=0)
+    end_time = end_datetime.time().replace(microsecond=0)
+
+    if end_datetime.date() > start_datetime.date():
+        end_time = time(23, 59, 59)
+
+    shift_create = ShiftCreate(
+        weekday=WeekdayEnum(start_datetime.weekday()),
+        start_time=start_time,
+        end_time=end_time,
+        user_id=user_id,
+    )
+    return shift_create
+
+
 def test_create_new_shift(
     client: TestClient,
     db: Session,
     admin_token_headers: dict[str, str],
-    admin_user: UserResponse,
+    admin_user: User,
 ):
+    assert admin_user.id is not None
+
     shift_create = random_shift_create(admin_user.id)
     data = jsonable_encoder(shift_create, exclude_unset=True)
 
@@ -55,8 +76,10 @@ def test_update_shift(
     client: TestClient,
     db: Session,
     admin_token_headers: dict[str, str],
-    admin_user: UserResponse,
+    admin_user: User,
 ):
+    assert admin_user.id is not None
+
     shift_create = random_shift_create(admin_user.id)
     shift = crud.create_shift(db, shift_create)
 
@@ -90,8 +113,10 @@ def test_delete_shift(
     client: TestClient,
     db: Session,
     admin_token_headers: dict[str, str],
-    admin_user: UserResponse,
+    admin_user: User,
 ):
+    assert admin_user.id is not None
+
     shift_create = random_shift_create(admin_user.id)
     shift = crud.create_shift(db, shift_create)
 
@@ -109,8 +134,10 @@ def test_get_shifts(
     client: TestClient,
     db: Session,
     admin_token_headers: dict[str, str],
-    admin_user: UserResponse,
+    admin_user: User,
 ):
+    assert admin_user.id is not None
+
     shift_create = random_shift_create(admin_user.id)
     crud.create_shift(db, shift_create)
 
@@ -128,3 +155,41 @@ def test_get_shifts(
         assert "startTime" in item
         assert "endTime" in item
         assert "userId" in item
+
+
+def test_get_current_shift(
+    client: TestClient,
+    db: Session,
+    admin_token_headers: dict[str, str],
+    admin_user: User,
+):
+    assert admin_user.id is not None
+
+    crud.delete_shifts(db, admin_user.shifts)
+
+    shift_create = now_shift_create(admin_user.id)
+    shift = jsonable_encoder(crud.create_shift(db, shift_create))
+
+    response = client.get(
+        "/shifts/current",
+        params={"user_id": admin_user.id, "attendance_type": random.randint(0, 1)},
+    )
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    response = client.get(
+        "/shifts/current",
+        headers=admin_token_headers,
+        params={"user_id": admin_user.id, "attendance_type": random.randint(0, 1)},
+    )
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert result["message"] == "OK"
+    assert result["shift"]
+    shift_result = result["shift"]
+    assert shift_result["id"] == shift["id"]
+    assert shift_result["weekday"] == shift["weekday"]
+    assert shift_result["startTime"] == shift["start_time"]
+    assert shift_result["endTime"] == shift["end_time"]
+    assert shift_result["userId"] == shift["user_id"]

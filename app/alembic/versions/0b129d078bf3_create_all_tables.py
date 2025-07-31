@@ -1,8 +1,8 @@
 """create all tables
 
-Revision ID: 526c36bf69f0
+Revision ID: 0b129d078bf3
 Revises:
-Create Date: 2025-07-06 18:08:52.447522
+Create Date: 2025-07-29 20:23:38.080546
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision: str = '526c36bf69f0'
+revision: str = '0b129d078bf3'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,7 +30,7 @@ def upgrade() -> None:
     )
     op.create_table('dayoff',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('date', sa.Date(), nullable=False),
+    sa.Column('day', sa.Date(), nullable=False),
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -47,7 +47,7 @@ def upgrade() -> None:
     sa.Column('name', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_shifts_at', sa.DateTime(), nullable=True),
     sa.Column('role_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['role_id'], ['role.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
@@ -56,7 +56,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_user_name'), 'user', ['name'], unique=False)
     op.create_table('shift',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('weekday', sa.Enum('SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', name='weekdayenum'), nullable=False),
+    sa.Column('weekday', sa.Enum('MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY', name='weekdayenum'), nullable=False),
     sa.Column('start_time', sa.Time(), nullable=False),
     sa.Column('end_time', sa.Time(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -65,9 +65,9 @@ def upgrade() -> None:
     )
     op.create_table('attendance',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('datetime', sa.DateTime(), nullable=False),
+    sa.Column('timestamp', sa.DateTime(), nullable=False),
     sa.Column('minutes_late', sa.Integer(), nullable=False),
-    sa.Column('type', sa.Enum('CLOCK_IN', 'CLOCK_OUT', name='attendancetype'), nullable=False),
+    sa.Column('attendance_type', sa.Enum('CLOCK_IN', 'CLOCK_OUT', name='attendancetype'), nullable=False),
     sa.Column('shift_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['shift_id'], ['shift.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')

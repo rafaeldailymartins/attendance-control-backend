@@ -11,7 +11,7 @@ from app.tests.utils import random_date, random_lower_string
 
 
 def random_day_off_create():
-    day_off_create = DayOffCreate(date=random_date(), description=random_lower_string())
+    day_off_create = DayOffCreate(day=random_date(), description=random_lower_string())
     return day_off_create
 
 
@@ -33,12 +33,12 @@ def test_create_new_day_off(
     result = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert "id" in result
-    assert result["date"] == data["date"]
+    assert result["day"] == data["day"]
     assert result["description"] == data["description"]
 
     day_off_db = db.get(DayOff, result["id"])
     assert day_off_db
-    assert day_off_db.date == day_off_create.date
+    assert day_off_db.day == day_off_create.day
     assert day_off_db.description == day_off_create.description
 
 
@@ -175,7 +175,7 @@ def test_get_days_off(
     assert len(result) > 0
     for item in result:
         assert "id" in item
-        assert "date" in item
+        assert "day" in item
         assert "description" in item
 
 

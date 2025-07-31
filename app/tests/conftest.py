@@ -2,8 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete
 
-from app.api.users.schemas import UserResponse
 from app.core.db import engine, init_db
+from app.core.deps import get_current_user
 from app.core.models import AppConfig, Attendance, DayOff, Role, Shift, User
 from app.main import app
 from app.tests.utils import CORRECT_LOGIN_DATA
@@ -45,7 +45,5 @@ def admin_token(client: TestClient) -> str:
 
 
 @pytest.fixture(scope="module")
-def admin_user(client: TestClient, admin_token_headers: dict[str, str]):
-    response = client.post("/users/me", headers=admin_token_headers)
-    result = response.json()
-    return UserResponse(**result)
+def admin_user(db: Session, admin_token: str):
+    return get_current_user(db, admin_token)

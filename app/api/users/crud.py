@@ -62,19 +62,19 @@ def update_user(session: Session, user: User, user_update: UserUpdate):
     if "password" in user_data:
         user_data["password"] = get_password_hash(user_data["password"])
 
-    user_data["updated_at"] = datetime.now(UTC)
+    user_data["updated_shifts_at"] = datetime.now(UTC)
 
     if user.id is None:
         raise ValueError("User ID is None. Cannot associate shifts without a user ID.")
 
     if user_update.shifts:
-        shifts_crud.clean_user_shifts(session, user.id, commit=False)
+        shifts_crud.delete_shifts(session, user.shifts, commit=False)
         shifts = [
             ShiftCreate(**shift.model_dump(), user_id=user.id)
             for shift in user_update.shifts
         ]
         for shift in shifts:
-            shifts_crud.create_shift(session, shift, commit=False)
+            shifts_crud.create_shift(session, shift, commit=False, update_user=False)
 
     db_update(session, user, user_data)
     return user

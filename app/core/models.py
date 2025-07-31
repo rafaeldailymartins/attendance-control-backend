@@ -21,23 +21,23 @@ class User(ModelBase, table=True):
     name: str = Field(index=True)
     active: bool = Field(default=True)
     created_at: datetime = Field(default=datetime.now(UTC))
-    updated_at: datetime | None = Field(default=None)
+    updated_shifts_at: datetime | None = Field(default=None)
     role_id: int | None = Field(
         default=None, foreign_key="role.id", nullable=True, ondelete="SET NULL"
     )
 
     role: Role | None = Relationship(back_populates="users")
-    shifts: list["Shift"] = Relationship(back_populates="user")
+    shifts: list["Shift"] = Relationship(back_populates="user", passive_deletes=True)
 
 
 class WeekdayEnum(IntEnum):
-    SUNDAY = 0
-    MONDAY = 1
-    TUESDAY = 2
-    WEDNESDAY = 3
-    THURSDAY = 4
-    FRIDAY = 5
-    SATURDAY = 6
+    MONDAY = 0
+    TUESDAY = 1
+    WEDNESDAY = 2
+    THURSDAY = 3
+    FRIDAY = 4
+    SATURDAY = 5
+    SUNDAY = 6
 
 
 class Shift(ModelBase, table=True):
@@ -47,7 +47,9 @@ class Shift(ModelBase, table=True):
     user_id: int = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
 
     user: User = Relationship(back_populates="shifts")
-    attendances: list["Attendance"] = Relationship(back_populates="shift")
+    attendances: list["Attendance"] = Relationship(
+        back_populates="shift", passive_deletes=True
+    )
 
 
 class AttendanceType(IntEnum):
@@ -56,16 +58,16 @@ class AttendanceType(IntEnum):
 
 
 class Attendance(ModelBase, table=True):
-    datetime: datetime
+    timestamp: datetime
     minutes_late: int
-    type: AttendanceType
+    attendance_type: AttendanceType
     shift_id: int = Field(foreign_key="shift.id", nullable=False, ondelete="CASCADE")
 
     shift: Shift = Relationship(back_populates="attendances")
 
 
 class DayOff(ModelBase, table=True):
-    date: date
+    day: date
     description: str
 
 

@@ -24,3 +24,8 @@ class ShiftUpdate(BaseSchema):
     start_time: time | None = None
     end_time: time | None = None
     user_id: int | None = None
+
+
+class UserCurrentShiftResponse(BaseSchema):
+    message: str
+    shift: ShiftResponse | None

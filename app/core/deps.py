@@ -7,12 +7,10 @@ from pydantic import ValidationError
 from sqlmodel import Session
 
 from app.core.config import settings
-from app.core.crud import get_admin_role
 from app.core.db import get_session
 from app.core.exceptions import (
     BaseHTTPException,
     ForbiddenException,
-    InternalServerErrorException,
 )
 from app.core.models import User
 from app.core.schemas import TokenPayload
@@ -47,9 +45,11 @@ def get_current_user(
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
 
 
-def check_admin(session: SessionDep, current_user: CurrentUserDep):
-    admin_role = get_admin_role(session)
-    if not admin_role:
-        raise InternalServerErrorException()
-    if current_user.role_id != admin_role.id:
-        raise ForbiddenException()
+def check_admin(current_user: CurrentUserDep):
+    if (
+        current_user.role is not None
+        and current_user.role.name == settings.ADMIN_ROLE_NAME
+    ):
+        return True
+
+    raise ForbiddenException()
