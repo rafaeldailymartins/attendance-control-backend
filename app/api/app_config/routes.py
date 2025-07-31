@@ -9,6 +9,7 @@ from app.api.app_config.schemas import (
     RoleCreate,
     RoleResponse,
     RoleUpdate,
+    TimezoneResponse,
 )
 from app.core.crud import db_delete
 from app.core.deps import SessionDep, check_admin, get_current_user
@@ -159,3 +160,11 @@ def list_roles(session: SessionDep):
     """
     roles = crud.list_roles(session)
     return roles
+
+
+@router.get("/timezones")
+def list_timezones() -> list[TimezoneResponse]:
+    """
+    Get all timezones
+    """
+    return crud.list_timezones()

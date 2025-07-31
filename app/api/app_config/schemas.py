@@ -47,3 +47,8 @@ class AppConfigUpdate(BaseSchema):
     minutes_late: int | None = None
     minutes_early: int | None = None
     zone_info: ZoneInfo | None = None
+
+
+class TimezoneResponse(BaseSchema):
+    zone_info: str
+    offset: str
