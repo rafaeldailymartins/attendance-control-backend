@@ -1,4 +1,5 @@
 from datetime import date
+from zoneinfo import ZoneInfo
 
 from app.core.schemas import BaseSchema
 
@@ -35,6 +36,7 @@ class RoleUpdate(BaseSchema):
 class AppConfigBase(BaseSchema):
     minutes_late: int
     minutes_early: int
+    zone_info: str
 
 
 class AppConfigResponse(AppConfigBase):
@@ -44,3 +46,4 @@ class AppConfigResponse(AppConfigBase):
 class AppConfigUpdate(BaseSchema):
     minutes_late: int | None = None
     minutes_early: int | None = None
+    zone_info: ZoneInfo | None = None

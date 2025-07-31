@@ -60,5 +60,6 @@ def update_app_config(
     session: Session, app_config: AppConfig, app_config_update: AppConfigUpdate
 ):
     app_config_data = app_config_update.model_dump(exclude_unset=True)
+    app_config_data["zone_info"] = app_config_data["zone_info"].key
     db_update(session, app_config, app_config_data)
     return app_config
