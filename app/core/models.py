@@ -75,3 +75,4 @@ class AppConfig(SQLModel, table=True):
     id: int = Field(default=1, primary_key=True)
     minutes_late: int
     minutes_early: int
+    zone_info: str = Field(default="UTC")
