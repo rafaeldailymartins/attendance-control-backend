@@ -77,6 +77,7 @@ def delete_shift(session: SessionDep, shift_id: int) -> Message:
 def list_shifts(session: SessionDep, user_id: int | None = None):
     """
     Get all shifts. Can be filtered by user id.
+    Inactive user shifts will not be shown.
     """
     shifts = crud.list_shifts(session, user_id=user_id)
     return shifts

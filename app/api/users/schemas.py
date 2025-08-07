@@ -24,6 +24,9 @@ class UserResponse(UserBase):
     shifts: list[UserShiftResponse] = Field(
         description="A list of UserShiftResponse schema, containing the user's shifts.",
     )
+    active: bool = Field(
+        description="False if the user should be hidden when returning absences."
+    )
 
 
 class UserShiftCreate(ShiftBase):

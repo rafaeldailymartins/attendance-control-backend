@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo, available_timezones
 
 from sqlmodel import Session, desc, select
@@ -46,8 +46,17 @@ def get_last_app_config(session: Session):
     return session_app_config
 
 
-def list_days_off(session: Session):
-    return session.exec(select(DayOff)).all()
+def list_days_off(
+    session: Session, start_date: date | None = None, end_date: date | None = None
+):
+    statement = select(DayOff)
+
+    if start_date is not None:
+        statement = statement.where(DayOff.day >= start_date)
+    if end_date is not None:
+        statement = statement.where(DayOff.day <= end_date)
+
+    return session.exec(statement).all()
 
 
 def list_roles(session: Session):

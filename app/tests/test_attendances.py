@@ -9,7 +9,7 @@ from sqlmodel import Session, delete, select
 from app.api.attendances import crud
 from app.api.attendances.schemas import AttendanceCreate
 from app.api.shifts import crud as shifts_crud
-from app.core.models import AppConfig, Attendance, AttendanceType, User
+from app.core.models import AppConfig, Attendance, AttendanceType, DayOff, User
 from app.tests.test_shifts import new_shift_create
 
 
@@ -167,6 +167,7 @@ def test_get_absences(
     )
     shifts_crud.create_shift(db, shift_create)
 
+    db.exec(delete(DayOff))  # type: ignore
     db.exec(delete(Attendance))  # type: ignore
     db.commit()
 

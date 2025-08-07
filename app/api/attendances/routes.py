@@ -105,7 +105,8 @@ def list_attendances(
     ] = None,
 ):
     """
-    List attendances
+    List attendances.
+    Attendances of inactive users will not be shown.
     """
     if user_id is not None:
         user = users_crud.get_user_by_id(session=session, id=user_id)
@@ -131,17 +132,11 @@ def list_absences(
     current_user: CurrentUserDep,
     start_date: Annotated[
         date,
-        Query(
-            description="The initial date that will be used to search for absences",
-            example=datetime.now().date(),
-        ),
+        Query(description="The initial date that will be used to search for absences"),
     ],
     end_date: Annotated[
         date,
-        Query(
-            description="The final date that will be used to search for absences",
-            example=datetime.now().date(),
-        ),
+        Query(description="The final date that will be used to search for absences"),
     ],
     user_id: Annotated[int | None, Query(description="Filter by user id.")] = None,
     absence_type: Annotated[
@@ -154,6 +149,7 @@ def list_absences(
 ):
     """
     Returns absences between two dates.
+    Absences of inactive users or days off will not be shown.
     """
 
     is_admin = (

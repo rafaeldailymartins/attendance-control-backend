@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, status
+from datetime import date
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.app_config import crud
 from app.api.app_config.schemas import (
@@ -138,11 +141,19 @@ def get_app_config(session: SessionDep):
     response_model=list[DayOffResponse],
     dependencies=[Depends(get_current_user)],
 )
-def list_days_off(session: SessionDep):
+def list_days_off(
+    session: SessionDep,
+    start_date: Annotated[
+        date | None, Query(description="Filter by start date")
+    ] = None,
+    end_date: Annotated[date | None, Query(description="Filter by end date")] = None,
+):
     """
     Get all days off
     """
-    days_off = crud.list_days_off(session)
+    days_off = crud.list_days_off(
+        session=session, start_date=start_date, end_date=end_date
+    )
     return days_off
 
 

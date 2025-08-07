@@ -116,9 +116,19 @@ def list_absences(
     for shift in shifts:
         shifts_by_weekday[shift.weekday].append(shift)
 
-    dates: list[ShiftDate] = []
+    days_off = app_config_crud.list_days_off(
+        session=session, start_date=start_date, end_date=end_date
+    )
 
-    for dt in list_dates(start_date, end_date):
+    dates = [
+        dt
+        for dt in list_dates(start_date, end_date)
+        if dt not in [day_off.day for day_off in days_off]
+    ]
+
+    shift_dates: list[ShiftDate] = []
+
+    for dt in dates:
         for shift in shifts:
             if (
                 dt.weekday() == shift.weekday
@@ -128,7 +138,7 @@ def list_absences(
                     or dt >= shift.user.updated_shifts_at.date()
                 )
             ):
-                dates.append(ShiftDate(day=dt, shift_id=shift.id))
+                shift_dates.append(ShiftDate(day=dt, shift_id=shift.id))
 
     attendances = list_attendances(
         session=session,
@@ -139,7 +149,7 @@ def list_absences(
     )
 
     absences: list[AbsenceResponse] = []
-    for entry in dates:
+    for entry in shift_dates:
         clock_in_ids = [
             attendance.shift_id
             for attendance in attendances
