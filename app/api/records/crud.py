@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from sqlmodel import Session, select
 
 from app.api.app_config import crud as app_config_crud
-from app.api.attendances.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
+from app.api.records.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
 from app.api.shifts import crud as shifts_crud
 from app.core.crud import db_insert, db_update
 from app.core.models import (

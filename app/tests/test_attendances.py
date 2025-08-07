@@ -6,8 +6,8 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete, select
 
-from app.api.attendances import crud
-from app.api.attendances.schemas import AttendanceCreate
+from app.api.records import crud
+from app.api.records.schemas import AttendanceCreate
 from app.api.shifts import crud as shifts_crud
 from app.core.models import AppConfig, Attendance, AttendanceType, DayOff, User
 from app.tests.test_shifts import new_shift_create
@@ -32,10 +32,12 @@ def test_create_new_attendance(
     )
     data = jsonable_encoder(attendance_create, exclude_unset=True)
 
-    response = client.post("/attendances", json=data)
+    response = client.post("/records/attendances", json=data)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    response = client.post("/attendances", json=data, headers=admin_token_headers)
+    response = client.post(
+        "/records/attendances", json=data, headers=admin_token_headers
+    )
     result = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert "id" in result
@@ -70,11 +72,11 @@ def test_update_attendance(
 
     data = {"attendanceType": AttendanceType.CLOCK_OUT}
 
-    response = client.patch(f"/attendances/{attendance.id}", json=data)
+    response = client.patch(f"/records/attendances/{attendance.id}", json=data)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     response = client.patch(
-        f"/attendances/{attendance.id}", headers=admin_token_headers, json=data
+        f"/records/attendances/{attendance.id}", headers=admin_token_headers, json=data
     )
     result = response.json()
 
@@ -110,11 +112,11 @@ def test_delete_attendance(
 
     attendance = crud.create_attendance(db, shift, AttendanceType.CLOCK_IN)
 
-    response = client.delete(f"/attendances/{attendance.id}")
+    response = client.delete(f"/records/attendances/{attendance.id}")
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     response = client.delete(
-        f"/attendances/{attendance.id}", headers=admin_token_headers
+        f"/records/attendances/{attendance.id}", headers=admin_token_headers
     )
     assert response.status_code == status.HTTP_200_OK
 
@@ -140,7 +142,7 @@ def test_get_attendances(
 
     crud.create_attendance(db, shift, AttendanceType.CLOCK_IN)
 
-    response = client.get("/attendances", headers=admin_token_headers)
+    response = client.get("/records/attendances", headers=admin_token_headers)
     result = response.json()
 
     assert response.status_code == status.HTTP_200_OK
@@ -177,11 +179,11 @@ def test_get_absences(
         "end_date": today,
     }
 
-    response = client.get("/attendances/absences")
+    response = client.get("/records/absences")
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     response = client.get(
-        "/attendances/absences", headers=admin_token_headers, params=params
+        "/records/absences", headers=admin_token_headers, params=params
     )
     result = response.json()
 

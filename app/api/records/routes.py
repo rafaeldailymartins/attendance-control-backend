@@ -3,8 +3,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from app.api.attendances import crud
-from app.api.attendances.schemas import (
+from app.api.records import crud
+from app.api.records.schemas import (
     AbsenceResponse,
     AttendanceCreate,
     AttendanceResponse,
@@ -24,10 +24,10 @@ from app.core.exceptions import (
 from app.core.models import AttendanceType
 from app.core.schemas import Message
 
-router = APIRouter(prefix="/attendances", tags=["attendances"])
+router = APIRouter(prefix="/records", tags=["records"])
 
 
-@router.post("/", response_model=AttendanceResponse)
+@router.post("/attendances", response_model=AttendanceResponse)
 def create_new_attendance(
     session: SessionDep, body: AttendanceCreate, current_user: CurrentUserDep
 ):
@@ -54,7 +54,7 @@ def create_new_attendance(
 
 
 @router.patch(
-    "/{attendance_id}",
+    "/attendances/{attendance_id}",
     response_model=AttendanceResponse,
     dependencies=[Depends(check_admin)],
 )
@@ -74,7 +74,7 @@ def update_attendance(session: SessionDep, attendance_id: int, body: AttendanceU
     return attendance
 
 
-@router.delete("/{attendance_id}", dependencies=[Depends(check_admin)])
+@router.delete("/attendances/{attendance_id}", dependencies=[Depends(check_admin)])
 def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
     """
     Delete a attendance.
@@ -86,7 +86,7 @@ def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
     return Message(message="Registro deletado com sucesso")
 
 
-@router.get("/", response_model=list[AttendanceResponse])
+@router.get("/attendances", response_model=list[AttendanceResponse])
 def list_attendances(
     session: SessionDep,
     user_id: Annotated[int | None, Query(description="Filter by user id.")] = None,
