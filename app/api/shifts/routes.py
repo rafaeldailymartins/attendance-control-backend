@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, status
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
 
 from app.api.shifts import crud
 from app.api.shifts.schemas import (
@@ -12,9 +14,10 @@ from app.core.config import settings
 from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, SessionDep, check_admin
 from app.core.exceptions import (
-    BaseHTTPException,
-    ForbiddenException,
-    InternalServerErrorException,
+    Forbidden,
+    InternalServerError,
+    ShiftNotFound,
+    UserNotFound,
 )
 from app.core.models import AttendanceType
 from app.core.schemas import Message
@@ -29,10 +32,7 @@ def create_new_shift(session: SessionDep, body: ShiftCreate):
     """
     user = users_crud.get_user_by_id(session=session, id=body.user_id)
     if not user:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            message="Usuário não encontrado.",
-        )
+        raise UserNotFound()
     shift_create = ShiftCreate.model_validate(body)
     shift = crud.create_shift(session=session, shift_create=shift_create)
     return shift
@@ -48,16 +48,11 @@ def update_shift(session: SessionDep, shift_id: int, body: ShiftUpdate):
     if body.user_id is not None:
         user = users_crud.get_user_by_id(session=session, id=body.user_id)
         if not user:
-            raise BaseHTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                message="Usuário não encontrado.",
-            )
+            raise UserNotFound()
 
     shift = crud.get_shift_by_id(session, shift_id)
     if not shift:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Turno não encontrado"
-        )
+        raise ShiftNotFound()
     crud.update_shift(session, shift, body)
     return shift
 
@@ -69,9 +64,7 @@ def delete_shift(session: SessionDep, shift_id: int) -> Message:
     """
     shift = crud.get_shift_by_id(session, shift_id)
     if not shift:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Turno não encontrado"
-        )
+        raise ShiftNotFound()
     db_delete(session, shift)
     return Message(message="Turno deletado com sucesso")
 
@@ -83,7 +76,7 @@ def delete_shift(session: SessionDep, shift_id: int) -> Message:
 )
 def list_shifts(session: SessionDep, user_id: int | None = None):
     """
-    Get all shifts
+    Get all shifts. Can be filtered by user id.
     """
     shifts = crud.list_shifts(session, user_id=user_id)
     return shifts
@@ -92,12 +85,21 @@ def list_shifts(session: SessionDep, user_id: int | None = None):
 @router.get("/current", response_model=UserCurrentShiftResponse)
 def get_current_shift(
     session: SessionDep,
-    user_id: int,
-    attendance_type: AttendanceType,
     current_user: CurrentUserDep,
+    user_id: int,
+    attendance_type: Annotated[
+        AttendanceType,
+        Query(
+            description="The type of attendance. "
+            "It can be 0 for clock in, or 1 for clock out."
+        ),
+    ],
 ):
     """
     Get the current shift based on the current datetime
+    and the timezone information saved in AppConfig.
+    It may not return a shift if the user has no more shifts today
+    or if they are clocking out without clocking in.
     """
     is_admin = (
         current_user.role is not None
@@ -106,14 +108,11 @@ def get_current_shift(
     is_allowed = user_id == current_user.id or is_admin
 
     if not is_allowed:
-        raise ForbiddenException()
+        raise Forbidden()
 
     user = users_crud.get_user_by_id(session=session, id=user_id)
     if not user:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            message="Usuário não encontrado.",
-        )
+        raise UserNotFound()
     shift = crud.get_current_shift(session, user, attendance_type)
     shift_response = ShiftResponse.model_validate(shift) if shift else None
     if shift:
@@ -127,4 +126,4 @@ def get_current_shift(
             message="Você ainda não começou seu turno.", shift=None
         )
 
-    raise InternalServerErrorException()
+    raise InternalServerError()

@@ -11,18 +11,45 @@ class BaseSchema(BaseModel):
 
 
 class GlobalConfig(BaseSchema):
-    title: str = Field(examples=["Attendance Control API"])
-    version: str = Field(examples=["0.1.0"])
-    description: str = Field(examples=["The backend of the attendance control system"])
-    root_path: str = Field(examples=[""])
-    docs_url: str | None = Field(examples=["/docs"])
-    redoc_url: str | None = Field(examples=["/redoc"])
-    openapi_url: str | None = Field(examples=["/openapi.json"])
+    title: str = Field(
+        examples=["Attendance Control API"], description="The title of the API."
+    )
+    version: str = Field(
+        examples=["0.1.0"], description="The current version of the API."
+    )
+    description: str = Field(
+        examples=["The backend of the attendance control system"],
+        description="A short description of the API.",
+    )
+    root_path: str = Field(
+        examples=[""],
+        description="The root path of the application.",
+    )
+    docs_url: str | None = Field(
+        examples=["/docs"],
+        description="The URL to the Swagger UI documentation, if enabled.",
+    )
+    redoc_url: str | None = Field(
+        examples=["/redoc"],
+        description="The URL to the ReDoc documentation, if enabled.",
+    )
+    openapi_url: str | None = Field(
+        examples=["/openapi.json"],
+        description="The URL to the OpenAPI schema (JSON), if enabled.",
+    )
 
 
 class Token(BaseSchema):
-    access_token: str
-    token_type: str = "Bearer"
+    access_token: str = Field(
+        description="A JWT token to be used in the `Authorization` header "
+        "for authenticated requests."
+    )
+    token_type: str = Field(
+        default="Bearer",
+        description="The type of the token returned. "
+        "Must be used in the `Authorization` header along with `accessToken` "
+        "for authenticated requests.",
+    )
 
 
 class TokenPayload(BaseSchema):

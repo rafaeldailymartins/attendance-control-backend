@@ -6,7 +6,12 @@ from app.api.users.deps import TokenDep
 from app.api.users.schemas import UserCreate, UserResponse, UserUpdate
 from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, SessionDep, check_admin
-from app.core.exceptions import BaseHTTPException, ForbiddenException
+from app.core.exceptions import (
+    BaseHTTPException,
+    Forbidden,
+    RoleNotFound,
+    UserNotFound,
+)
 from app.core.schemas import Message, Token
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -15,7 +20,11 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.post("/login")
 def login(token: TokenDep) -> Token:
     """
-    OAuth2 compatible token login, get an access token for future requests
+    OAuth2 compatible token login, get an access token for future requests.
+
+    Request Body (application/x-www-form-urlencoded):
+    - **username**: The user's email address.
+    - **password**: The user's password.
     """
     return token
 
@@ -24,7 +33,7 @@ def login(token: TokenDep) -> Token:
 def login_swagger(token: TokenDep):
     """
     Used only by swagger.
-    OAuth2 compatible token login, get an access token for future requests
+    OAuth2 compatible token login, get an access token for future requests.
     """
     return token.model_dump()
 
@@ -52,9 +61,7 @@ def create_new_user(session: SessionDep, body: UserCreate):
     if body.role_id is not None:
         role = app_config_crud.get_role_by_id(session, body.role_id)
         if not role:
-            raise BaseHTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
-            )
+            raise RoleNotFound()
 
     user_create = UserCreate.model_validate(body)
     user = crud.create_user(session=session, user_create=user_create)
@@ -64,7 +71,7 @@ def create_new_user(session: SessionDep, body: UserCreate):
 @router.get("/", response_model=list[UserResponse], dependencies=[Depends(check_admin)])
 def list_users(session: SessionDep):
     """
-    Lists all users
+    Get a list with all users.
     """
     return crud.list_users(session)
 
@@ -78,9 +85,7 @@ def get_user(session: SessionDep, user_id: int):
     """
     user = crud.get_user_by_id(session, user_id)
     if not user:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Usuário não encontrado"
-        )
+        raise UserNotFound()
     return user
 
 
@@ -101,15 +106,11 @@ def update_user(session: SessionDep, user_id: int, body: UserUpdate):
     if body.role_id is not None:
         role = app_config_crud.get_role_by_id(session, body.role_id)
         if not role:
-            raise BaseHTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
-            )
+            raise RoleNotFound()
 
     user = crud.get_user_by_id(session, user_id)
     if not user:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Usuário não encontrado"
-        )
+        raise UserNotFound()
     crud.update_user(session, user, body)
     return user
 
@@ -123,10 +124,8 @@ def delete_user(
     """
     user = crud.get_user_by_id(session, user_id)
     if not user:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Usuário não encontrado"
-        )
+        raise UserNotFound()
     if user.id == current_user.id:
-        raise ForbiddenException("Não é possível deletar a si mesmo")
+        raise Forbidden("Não é possível deletar a si mesmo")
     db_delete(session, user)
     return Message(message="Usuário deletado com sucesso")

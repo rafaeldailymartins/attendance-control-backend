@@ -1,13 +1,9 @@
 import uvicorn
-from fastapi import FastAPI, status
-from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from app.api import app_config, attendances, shifts, users
 from app.core.config import settings
-from app.core.exceptions import BaseHTTPException, InternalServerErrorException
 from app.core.schemas import GlobalConfig
 
 app = FastAPI(
@@ -26,33 +22,11 @@ if settings.cors_origins:
     )
 
 
-@app.exception_handler(Exception)
-async def custom_exception_handler():
-    internal_exception = InternalServerErrorException(extra="Internal Server Error")
-    return JSONResponse(
-        status_code=internal_exception.status_code,
-        content={"detail": internal_exception.detail},
-    )
-
-
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(_, exc: RequestValidationError):
-    base_exception = BaseHTTPException(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        message="Os dados enviados através da requisição não são válidos",
-        extra=jsonable_encoder(exc.errors()),
-    )
-    return JSONResponse(
-        status_code=base_exception.status_code,
-        content={"detail": base_exception.detail},
-    )
-
-
 # Routes
 @app.get("/", tags=["main"], response_model=GlobalConfig)
 def root():
     """
-    Returns information about the application.
+    Get basic information about the application.
     """
     return app
 

@@ -13,7 +13,12 @@ from app.api.app_config.schemas import (
 )
 from app.core.crud import db_delete
 from app.core.deps import SessionDep, check_admin, get_current_user
-from app.core.exceptions import BaseHTTPException
+from app.core.exceptions import (
+    BaseHTTPException,
+    DayOffNotFound,
+    InternalServerError,
+    RoleNotFound,
+)
 from app.core.schemas import Message
 
 router = APIRouter(prefix="/config", tags=["config"])
@@ -65,9 +70,7 @@ def update_role(session: SessionDep, role_id: int, body: RoleUpdate):
 
     role = crud.get_role_by_id(session, role_id)
     if not role:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
-        )
+        raise RoleNotFound()
     crud.update_role(session, role, body)
     return role
 
@@ -82,8 +85,7 @@ def update_app_config(session: SessionDep, body: AppConfigUpdate):
 
     app_config = crud.get_last_app_config(session)
     if not app_config:
-        raise BaseHTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        raise InternalServerError(
             message="Ocorreu um erro no servidor e "
             "não foi possível encontrar as configurações.",
         )
@@ -98,9 +100,7 @@ def delete_day_off(session: SessionDep, day_off_id: int) -> Message:
     """
     day_off = crud.get_day_off_by_id(session, day_off_id)
     if not day_off:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Dia livre não encontrado"
-        )
+        raise DayOffNotFound()
     db_delete(session, day_off)
     return Message(message="Dia livre deletado com sucesso")
 
@@ -112,9 +112,7 @@ def delete_role(session: SessionDep, role_id: int) -> Message:
     """
     role = crud.get_role_by_id(session, role_id)
     if not role:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Cargo não encontrado"
-        )
+        raise RoleNotFound()
     db_delete(session, role)
     return Message(message="Cargo deletado com sucesso")
 
@@ -128,8 +126,7 @@ def get_app_config(session: SessionDep):
     """
     app_config = crud.get_last_app_config(session)
     if not app_config:
-        raise BaseHTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        raise InternalServerError(
             message="Ocorreu um erro no servidor e "
             "não foi possível encontrar as configurações.",
         )
