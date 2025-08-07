@@ -62,8 +62,9 @@ def delete_shifts(session: Session, shifts: list[Shift], commit: bool = True):
 
 
 def list_shifts(session: Session, user_id: int | None = None):
-    statement = select(Shift)
+    statement = select(Shift).join(User)
 
+    statement = statement.where(User.active)
     if user_id is not None:
         statement = statement.where(Shift.user_id == user_id)
 

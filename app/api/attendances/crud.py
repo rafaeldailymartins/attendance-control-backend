@@ -8,7 +8,14 @@ from app.api.app_config import crud as app_config_crud
 from app.api.attendances.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
 from app.api.shifts import crud as shifts_crud
 from app.core.crud import db_insert, db_update
-from app.core.models import AppConfig, Attendance, AttendanceType, Shift, WeekdayEnum
+from app.core.models import (
+    AppConfig,
+    Attendance,
+    AttendanceType,
+    Shift,
+    User,
+    WeekdayEnum,
+)
 
 
 def get_minutes_late(
@@ -75,8 +82,9 @@ def list_attendances(
     start_timestamp: datetime | None = None,
     end_timestamp: datetime | None = None,
 ):
-    statement = select(Attendance).join(Shift)
+    statement = select(Attendance).join(Shift).join(User)
 
+    statement = statement.where(User.active)
     if user_id is not None:
         statement = statement.where(Shift.user_id == user_id)
     if attendance_type is not None:

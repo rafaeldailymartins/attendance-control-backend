@@ -133,14 +133,14 @@ def list_absences(
         date,
         Query(
             description="The initial date that will be used to search for absences",
-            examples=[datetime.now().date()],
+            example=datetime.now().date(),
         ),
     ],
     end_date: Annotated[
         date,
         Query(
             description="The final date that will be used to search for absences",
-            examples=[datetime.now().date()],
+            example=datetime.now().date(),
         ),
     ],
     user_id: Annotated[int | None, Query(description="Filter by user id.")] = None,
