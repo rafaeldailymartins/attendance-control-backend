@@ -1,7 +1,9 @@
-from datetime import UTC, datetime
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from sqlmodel import Session, select
 
+from app.api.app_config import crud as app_config_crud
 from app.api.shifts.schemas import ShiftCreate, ShiftUpdate
 from app.api.users import crud as users_crud
 from app.core.crud import db_update
@@ -60,16 +62,25 @@ def delete_shifts(session: Session, shifts: list[Shift], commit: bool = True):
 
 
 def list_shifts(session: Session, user_id: int | None = None):
-    statement = select(Shift)
+    statement = select(Shift).join(User)
 
+    statement = statement.where(User.active)
     if user_id is not None:
         statement = statement.where(Shift.user_id == user_id)
 
     return session.exec(statement).all()
 
 
-def get_current_shift(user: User, attendance_type: AttendanceType) -> Shift | None:
-    now = datetime.now(UTC)
+def get_current_shift(
+    session: Session, user: User, attendance_type: AttendanceType
+) -> Shift | None:
+    app_config = app_config_crud.get_last_app_config(session)
+    if not app_config:
+        raise ValueError(
+            "Ocorreu um erro no servidor e não foi possível encontrar as configurações."
+        )
+
+    now = datetime.now(ZoneInfo(app_config.zone_info))
     time_now = now.time()
     weekday = now.weekday()
     shifts = [shift for shift in user.shifts if shift.weekday == weekday]

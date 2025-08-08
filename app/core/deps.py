@@ -8,10 +8,7 @@ from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.db import get_session
-from app.core.exceptions import (
-    BaseHTTPException,
-    ForbiddenException,
-)
+from app.core.exceptions import BaseHTTPException, Forbidden, Unauthenticated
 from app.core.models import User
 from app.core.schemas import TokenPayload
 
@@ -24,16 +21,14 @@ def get_current_user(
     session: SessionDep, token: Annotated[str, Depends(oauth2_scheme)]
 ):
     if not token:
-        raise BaseHTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, message="Usuário não autenticado"
-        )
+        raise Unauthenticated()
     try:
         payload = jwt.decode(
             token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
         )
         token_data = TokenPayload(**payload)
     except (jwt.InvalidTokenError, ValidationError):
-        raise ForbiddenException("Não foi possível validar as credenciais")
+        raise Forbidden("Não foi possível validar as credenciais")
     user = session.get(User, token_data.sub)
     if not user:
         raise BaseHTTPException(
@@ -52,4 +47,4 @@ def check_admin(current_user: CurrentUserDep):
     ):
         return True
 
-    raise ForbiddenException()
+    raise Forbidden()

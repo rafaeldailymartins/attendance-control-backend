@@ -1,5 +1,6 @@
 import random
-from datetime import UTC, datetime, time, timedelta
+from datetime import datetime, time, timedelta
+from zoneinfo import ZoneInfo
 
 from fastapi import status
 from fastapi.encoders import jsonable_encoder
@@ -8,7 +9,7 @@ from sqlmodel import Session, select
 
 from app.api.shifts import crud
 from app.api.shifts.schemas import ShiftCreate
-from app.core.models import Shift, User, WeekdayEnum
+from app.core.models import AppConfig, Shift, User, WeekdayEnum
 from app.tests.utils import random_time
 
 
@@ -22,8 +23,7 @@ def random_shift_create(user_id: int):
     return shift_create
 
 
-def now_shift_create(user_id: int):
-    start_datetime = datetime.now(UTC)
+def new_shift_create(user_id: int, start_datetime: datetime):
     end_datetime = start_datetime + timedelta(hours=1)
 
     start_time = start_datetime.time().replace(microsecond=0)
@@ -162,12 +162,15 @@ def test_get_current_shift(
     db: Session,
     admin_token_headers: dict[str, str],
     admin_user: User,
+    app_config: AppConfig,
 ):
     assert admin_user.id is not None
 
     crud.delete_shifts(db, admin_user.shifts)
 
-    shift_create = now_shift_create(admin_user.id)
+    shift_create = new_shift_create(
+        admin_user.id, datetime.now(ZoneInfo(app_config.zone_info))
+    )
     shift = jsonable_encoder(crud.create_shift(db, shift_create))
 
     response = client.get(

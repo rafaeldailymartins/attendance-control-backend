@@ -1,9 +1,10 @@
 from datetime import date, datetime
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query
 
-from app.api.attendances import crud
-from app.api.attendances.schemas import (
+from app.api.records import crud
+from app.api.records.schemas import (
     AbsenceResponse,
     AttendanceCreate,
     AttendanceResponse,
@@ -14,14 +15,19 @@ from app.api.users import crud as users_crud
 from app.core.config import settings
 from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, SessionDep, check_admin
-from app.core.exceptions import BaseHTTPException, ForbiddenException
+from app.core.exceptions import (
+    AttendanceNotFound,
+    Forbidden,
+    ShiftNotFound,
+    UserNotFound,
+)
 from app.core.models import AttendanceType
 from app.core.schemas import Message
 
-router = APIRouter(prefix="/attendances", tags=["attendances"])
+router = APIRouter(prefix="/records", tags=["records"])
 
 
-@router.post("/", response_model=AttendanceResponse)
+@router.post("/attendances", response_model=AttendanceResponse)
 def create_new_attendance(
     session: SessionDep, body: AttendanceCreate, current_user: CurrentUserDep
 ):
@@ -30,10 +36,7 @@ def create_new_attendance(
     """
     shift = shifts_crud.get_shift_by_id(session, body.shift_id)
     if not shift:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            message="Turno não encontrado.",
-        )
+        raise ShiftNotFound()
 
     is_admin = (
         current_user.role is not None
@@ -42,7 +45,7 @@ def create_new_attendance(
     is_allowed = shift.user_id == current_user.id or is_admin
 
     if not is_allowed:
-        raise ForbiddenException()
+        raise Forbidden()
 
     attendance = crud.create_attendance(
         session=session, shift=shift, attendance_type=body.attendance_type
@@ -51,7 +54,7 @@ def create_new_attendance(
 
 
 @router.patch(
-    "/{attendance_id}",
+    "/attendances/{attendance_id}",
     response_model=AttendanceResponse,
     dependencies=[Depends(check_admin)],
 )
@@ -62,52 +65,53 @@ def update_attendance(session: SessionDep, attendance_id: int, body: AttendanceU
     if body.shift_id is not None:
         shift = shifts_crud.get_shift_by_id(session=session, id=body.shift_id)
         if not shift:
-            raise BaseHTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                message="Turno não encontrado.",
-            )
+            raise ShiftNotFound()
 
     attendance = crud.get_attendance_by_id(session, attendance_id)
     if not attendance:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Registro não encontrado"
-        )
+        raise AttendanceNotFound()
     crud.update_attendance(session, attendance, body)
     return attendance
 
 
-@router.delete("/{attendance_id}", dependencies=[Depends(check_admin)])
+@router.delete("/attendances/{attendance_id}", dependencies=[Depends(check_admin)])
 def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
     """
     Delete a attendance.
     """
     attendance = crud.get_attendance_by_id(session, attendance_id)
     if not attendance:
-        raise BaseHTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, message="Registro não encontrado"
-        )
+        raise AttendanceNotFound()
     db_delete(session, attendance)
     return Message(message="Registro deletado com sucesso")
 
 
-@router.get("/", response_model=list[AttendanceResponse])
+@router.get("/attendances", response_model=list[AttendanceResponse])
 def list_attendances(
     session: SessionDep,
-    user_id: int | None = None,
-    attendance_type: AttendanceType | None = None,
-    start_timestamp: datetime | None = None,
-    end_timestamp: datetime | None = None,
+    user_id: Annotated[int | None, Query(description="Filter by user id.")] = None,
+    attendance_type: Annotated[
+        AttendanceType | None,
+        Query(
+            description="Filter by attendance type. "
+            "It can be 0 for clock in, or 1 for clock out."
+        ),
+    ] = None,
+    start_timestamp: Annotated[
+        datetime | None, Query(description="Filter by a start datetime")
+    ] = None,
+    end_timestamp: Annotated[
+        datetime | None, Query(description="Filter by a end datetime")
+    ] = None,
 ):
     """
-    List attendances
+    List attendances.
+    Attendances of inactive users will not be shown.
     """
     if user_id is not None:
         user = users_crud.get_user_by_id(session=session, id=user_id)
         if not user:
-            raise BaseHTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                message="Usuário não encontrado.",
-            )
+            raise UserNotFound()
 
     attendances = crud.list_attendances(
         session=session,
@@ -126,13 +130,26 @@ def list_attendances(
 def list_absences(
     session: SessionDep,
     current_user: CurrentUserDep,
-    start_date: date,
-    end_date: date,
-    user_id: int | None = None,
-    absence_type: AttendanceType | None = None,
+    start_date: Annotated[
+        date,
+        Query(description="The initial date that will be used to search for absences"),
+    ],
+    end_date: Annotated[
+        date,
+        Query(description="The final date that will be used to search for absences"),
+    ],
+    user_id: Annotated[int | None, Query(description="Filter by user id.")] = None,
+    absence_type: Annotated[
+        AttendanceType | None,
+        Query(
+            description="Filter by absence type. "
+            "It can be 0 for clock in, or 1 for clock out."
+        ),
+    ] = None,
 ):
     """
-    List absences
+    Returns absences between two dates.
+    Absences of inactive users or days off will not be shown.
     """
 
     is_admin = (
@@ -142,15 +159,12 @@ def list_absences(
     is_allowed = user_id == current_user.id or is_admin
 
     if not is_allowed:
-        raise ForbiddenException()
+        raise Forbidden()
 
     if user_id is not None:
         user = users_crud.get_user_by_id(session=session, id=user_id)
         if not user:
-            raise BaseHTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                message="Usuário não encontrado.",
-            )
+            raise UserNotFound()
 
     absences = crud.list_absences(
         session=session,

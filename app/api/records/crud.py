@@ -1,45 +1,58 @@
 from collections import defaultdict
-from datetime import UTC, date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
+from zoneinfo import ZoneInfo
 
 from sqlmodel import Session, select
 
 from app.api.app_config import crud as app_config_crud
-from app.api.attendances.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
+from app.api.records.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
 from app.api.shifts import crud as shifts_crud
 from app.core.crud import db_insert, db_update
-from app.core.models import Attendance, AttendanceType, Shift, WeekdayEnum
+from app.core.models import (
+    AppConfig,
+    Attendance,
+    AttendanceType,
+    Shift,
+    User,
+    WeekdayEnum,
+)
 
 
 def get_minutes_late(
-    session: Session,
+    app_config: AppConfig,
     shift: Shift,
     attendance_type: AttendanceType,
     dt: datetime,
 ):
-    app_config = app_config_crud.get_last_app_config(session)
-    if not app_config:
-        raise ValueError(
-            "Ocorreu um erro no servidor e não foi possível encontrar as configurações."
-        )
-
+    zone_info = ZoneInfo(app_config.zone_info)
     delta = timedelta(minutes=0)
 
     if attendance_type == AttendanceType.CLOCK_IN:
-        shift_start_datetime = datetime.combine(dt.date(), shift.start_time, tzinfo=UTC)
+        shift_start_datetime = datetime.combine(
+            dt.date(), shift.start_time, tzinfo=zone_info
+        )
         delta = dt - shift_start_datetime
         minutes = int(delta.total_seconds() // 60)
         return max(minutes, 0) if minutes > app_config.minutes_late else 0
 
     if attendance_type == AttendanceType.CLOCK_OUT:
-        shift_end_datetime = datetime.combine(dt.date(), shift.end_time, tzinfo=UTC)
+        shift_end_datetime = datetime.combine(
+            dt.date(), shift.end_time, tzinfo=zone_info
+        )
         delta = shift_end_datetime - dt
         minutes = int(delta.total_seconds() // 60)
         return max(minutes, 0) if minutes > app_config.minutes_early else 0
 
 
 def create_attendance(session: Session, shift: Shift, attendance_type: AttendanceType):
-    now = datetime.now(UTC)
-    minutes_late = get_minutes_late(session, shift, attendance_type, now)
+    app_config = app_config_crud.get_last_app_config(session)
+    if not app_config:
+        raise ValueError(
+            "Ocorreu um erro no servidor e não foi possível encontrar as configurações."
+        )
+
+    now = datetime.now(ZoneInfo(app_config.zone_info))
+    minutes_late = get_minutes_late(app_config, shift, attendance_type, now)
     attendance = Attendance(
         timestamp=now,
         minutes_late=minutes_late,
@@ -69,8 +82,9 @@ def list_attendances(
     start_timestamp: datetime | None = None,
     end_timestamp: datetime | None = None,
 ):
-    statement = select(Attendance).join(Shift)
+    statement = select(Attendance).join(Shift).join(User)
 
+    statement = statement.where(User.active)
     if user_id is not None:
         statement = statement.where(Shift.user_id == user_id)
     if attendance_type is not None:
@@ -102,9 +116,19 @@ def list_absences(
     for shift in shifts:
         shifts_by_weekday[shift.weekday].append(shift)
 
-    dates: list[ShiftDate] = []
+    days_off = app_config_crud.list_days_off(
+        session=session, start_date=start_date, end_date=end_date
+    )
 
-    for dt in list_dates(start_date, end_date):
+    dates = [
+        dt
+        for dt in list_dates(start_date, end_date)
+        if dt not in [day_off.day for day_off in days_off]
+    ]
+
+    shift_dates: list[ShiftDate] = []
+
+    for dt in dates:
         for shift in shifts:
             if (
                 dt.weekday() == shift.weekday
@@ -114,7 +138,7 @@ def list_absences(
                     or dt >= shift.user.updated_shifts_at.date()
                 )
             ):
-                dates.append(ShiftDate(day=dt, shift_id=shift.id))
+                shift_dates.append(ShiftDate(day=dt, shift_id=shift.id))
 
     attendances = list_attendances(
         session=session,
@@ -125,7 +149,7 @@ def list_absences(
     )
 
     absences: list[AbsenceResponse] = []
-    for entry in dates:
+    for entry in shift_dates:
         clock_in_ids = [
             attendance.shift_id
             for attendance in attendances
