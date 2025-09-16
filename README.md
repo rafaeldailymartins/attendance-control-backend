@@ -9,7 +9,7 @@
 
 **Attendance Control** is a clock in and out system for organizational environments.
 
-The system was initially designed as a college project to serve companies from [**Junior Enterprises Movement**](https://brasiljunior.org.br/conheca-o-mej), which had specific attendance control needs. However, it is now being completely refactored to support any type of organization.
+The system was initially designed as a college project to serve companies from [**Junior Enterprises Movement**](https://www.juniorenterprises.org/), which had specific attendance control needs. However, it is now being completely refactored to support any type of organization.
 
 This repository refers to the backend of the **Attendance Control** system.
 
