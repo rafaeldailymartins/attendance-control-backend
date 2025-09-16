@@ -7,6 +7,11 @@ from sqlmodel import Field, Relationship, SQLModel
 
 class ModelBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
+    created_at: datetime = Field(default=datetime.now(UTC))
+    updated_at: datetime | None = Field(
+        default=None, sa_column_kwargs={"onupdate": datetime.now(UTC)}
+    )
+    deleted_at: datetime | None = Field(default=None)
 
 
 class Role(ModelBase, table=True):
@@ -20,7 +25,6 @@ class User(ModelBase, table=True):
     password: str
     name: str = Field(index=True)
     active: bool = Field(default=True)
-    created_at: datetime = Field(default=datetime.now(UTC))
     updated_shifts_at: datetime | None = Field(default=None)
     role_id: int | None = Field(
         default=None, foreign_key="role.id", nullable=True, ondelete="SET NULL"
@@ -71,7 +75,7 @@ class DayOff(ModelBase, table=True):
     description: str
 
 
-class AppConfig(SQLModel, table=True):
+class AppConfig(ModelBase, table=True):
     id: int = Field(default=1, primary_key=True)
     minutes_late: int
     minutes_early: int
