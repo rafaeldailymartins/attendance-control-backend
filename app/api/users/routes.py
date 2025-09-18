@@ -5,14 +5,14 @@ from app.api.users import crud
 from app.api.users.deps import TokenDep
 from app.api.users.schemas import UserCreate, UserResponse, UserUpdate
 from app.core.crud import db_delete
-from app.core.deps import CurrentUserDep, SessionDep, check_admin
+from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
 from app.core.exceptions import (
     BaseHTTPException,
     Forbidden,
     RoleNotFound,
     UserNotFound,
 )
-from app.core.schemas import Message, Token
+from app.core.schemas import Message, Page, Token
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -68,12 +68,12 @@ def create_new_user(session: SessionDep, body: UserCreate):
     return user
 
 
-@router.get("/", response_model=list[UserResponse], dependencies=[Depends(check_admin)])
-def list_users(session: SessionDep):
+@router.get("/", response_model=Page[UserResponse], dependencies=[Depends(check_admin)])
+def list_users(session: SessionDep, pagination: PaginationDep):
     """
     Get a list with all users.
     """
-    return crud.list_users(session)
+    return crud.list_users(session, pagination.page, pagination.page_size)
 
 
 @router.get(

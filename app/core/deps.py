@@ -10,8 +10,9 @@ from app.core.config import settings
 from app.core.db import get_session
 from app.core.exceptions import BaseHTTPException, Forbidden, Unauthenticated
 from app.core.models import User
-from app.core.schemas import TokenPayload
+from app.core.schemas import PaginationParams, TokenPayload
 
+PaginationDep = Annotated[PaginationParams, Depends()]
 SessionDep = Annotated[Session, Depends(get_session)]
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login/swagger", auto_error=False)

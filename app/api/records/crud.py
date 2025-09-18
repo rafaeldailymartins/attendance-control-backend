@@ -7,7 +7,7 @@ from sqlmodel import Session, select
 from app.api.app_config import crud as app_config_crud
 from app.api.records.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
 from app.api.shifts import crud as shifts_crud
-from app.core.crud import db_insert, db_update
+from app.core.crud import db_insert, db_update, paginate
 from app.core.models import (
     AppConfig,
     Attendance,
@@ -81,6 +81,8 @@ def list_attendances(
     attendance_type: AttendanceType | None = None,
     start_timestamp: datetime | None = None,
     end_timestamp: datetime | None = None,
+    page: int | None = None,
+    page_size: int | None = None,
 ):
     statement = select(Attendance).join(Shift).join(User)
 
@@ -94,7 +96,7 @@ def list_attendances(
     if end_timestamp is not None:
         statement = statement.where(Attendance.timestamp <= end_timestamp)
 
-    return session.exec(statement).all()
+    return paginate(query=statement, session=session, page=page, page_size=page_size)
 
 
 def list_dates(start_date: date, end_date: date):
@@ -110,7 +112,7 @@ def list_absences(
     user_id: int | None = None,
     absence_type: AttendanceType | None = None,
 ):
-    shifts = shifts_crud.list_shifts(session, user_id)
+    shifts = shifts_crud.list_shifts(session, user_id).items
 
     shifts_by_weekday: defaultdict[WeekdayEnum, list[Shift]] = defaultdict(list[Shift])
     for shift in shifts:
@@ -118,7 +120,7 @@ def list_absences(
 
     days_off = app_config_crud.list_days_off(
         session=session, start_date=start_date, end_date=end_date
-    )
+    ).items
 
     dates = [
         dt
@@ -146,7 +148,7 @@ def list_absences(
         end_timestamp=datetime.combine(end_date, time()),
         attendance_type=absence_type,
         user_id=user_id,
-    )
+    ).items
 
     absences: list[AbsenceResponse] = []
     for entry in shift_dates:

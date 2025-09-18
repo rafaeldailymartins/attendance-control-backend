@@ -1,9 +1,11 @@
 from typing import Any
 
-from sqlmodel import Session, SQLModel, select
+from sqlmodel import Session, SQLModel, func, select
+from sqlmodel.sql.expression import SelectOfScalar
 
 from app.core.config import settings
 from app.core.models import AppConfig, Role, User
+from app.core.schemas import Page, T
 from app.core.security import get_password_hash
 
 
@@ -67,3 +69,51 @@ def populate_app_config(session: Session):
         db_insert(session, app_config)
 
     return app_config
+
+
+def paginate(
+    query: SelectOfScalar[T],  # SQLModel select query
+    session: Session,
+    page: int | None = None,
+    page_size: int | None = None,
+) -> Page[T]:
+    total_items = session.scalar(select(func.count()).select_from(query.subquery()))
+    assert isinstance(total_items, int), (
+        "A database error occurred when getting `total_items`"
+    )
+
+    if not (page and page_size):
+        # Fetch the all items
+        items = list(session.exec(query).all())
+        return Page[T](
+            items=items,
+            total_items=total_items,
+            total_pages=1,
+            current_page_size=len(items),
+            current_page=1,
+        )
+
+    # Handle out-of-bounds page requests by going to the last page instead of displaying
+    # empty data.
+    total_pages = (total_items + page_size - 1) // page_size
+    # we don't want to have 0 page even if there is no item.
+    total_pages = max(total_pages, 1)
+    current_page = min(page, total_pages)
+
+    # Calculate the offset for pagination
+    offset = (current_page - 1) * page_size
+
+    # Apply limit and offset to the query
+    result = session.exec(query.offset(offset).limit(page_size))
+
+    # Fetch the paginated items
+    items = list(result.all())
+
+    # Return the paginated response using the Page model
+    return Page[T](
+        items=items,
+        total_items=total_items,
+        total_pages=total_pages,
+        current_page_size=len(items),  # can differ from the requested page_size
+        current_page=current_page,  # can differ from the requested page
+    )

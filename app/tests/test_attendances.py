@@ -144,10 +144,11 @@ def test_get_attendances(
 
     response = client.get("/records/attendances", headers=admin_token_headers)
     result = response.json()
+    items = result["items"]
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(result) > 0
-    for item in result:
+    assert len(items) > 0
+    for item in items:
         assert "id" in item
         assert "attendanceType" in item
         assert "shiftId" in item

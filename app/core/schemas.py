@@ -1,3 +1,5 @@
+from typing import TypeVar
+
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
@@ -58,3 +60,21 @@ class TokenPayload(BaseSchema):
 
 class Message(BaseSchema):
     message: str
+
+
+class PaginationParams(BaseSchema):
+    page_size: int = Field(
+        100, ge=1, le=100, description="Requested number of items per page"
+    )
+    page: int = Field(1, ge=1, description="Requested page number")
+
+
+T = TypeVar("T", bound=BaseModel)
+
+
+class Page[T](BaseSchema):
+    items: list[T] = Field(description="List of items on this Page")
+    total_items: int = Field(description="Number of total items")
+    total_pages: int = Field(description="Total number of pages")
+    current_page: int = Field(description="Page number")
+    current_page_size: int = Field(description="Number of items per page")

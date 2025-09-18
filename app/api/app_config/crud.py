@@ -10,7 +10,7 @@ from app.api.app_config.schemas import (
     RoleUpdate,
     TimezoneResponse,
 )
-from app.core.crud import db_insert, db_update
+from app.core.crud import db_insert, db_update, paginate
 from app.core.models import AppConfig, DayOff, Role
 
 
@@ -47,7 +47,11 @@ def get_last_app_config(session: Session):
 
 
 def list_days_off(
-    session: Session, start_date: date | None = None, end_date: date | None = None
+    session: Session,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    page: int | None = None,
+    page_size: int | None = None,
 ):
     statement = select(DayOff)
 
@@ -56,11 +60,13 @@ def list_days_off(
     if end_date is not None:
         statement = statement.where(DayOff.day <= end_date)
 
-    return session.exec(statement).all()
+    return paginate(query=statement, session=session, page=page, page_size=page_size)
 
 
-def list_roles(session: Session):
-    return session.exec(select(Role)).all()
+def list_roles(session: Session, page: int | None = None, page_size: int | None = None):
+    statement = select(Role)
+
+    return paginate(query=statement, session=session, page=page, page_size=page_size)
 
 
 def list_timezones() -> list[TimezoneResponse]:

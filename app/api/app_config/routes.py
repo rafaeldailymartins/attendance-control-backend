@@ -15,14 +15,14 @@ from app.api.app_config.schemas import (
     TimezoneResponse,
 )
 from app.core.crud import db_delete
-from app.core.deps import SessionDep, check_admin, get_current_user
+from app.core.deps import PaginationDep, SessionDep, check_admin, get_current_user
 from app.core.exceptions import (
     BaseHTTPException,
     DayOffNotFound,
     InternalServerError,
     RoleNotFound,
 )
-from app.core.schemas import Message
+from app.core.schemas import Message, Page
 
 router = APIRouter(prefix="/config", tags=["config"])
 
@@ -138,11 +138,12 @@ def get_app_config(session: SessionDep):
 
 @router.get(
     "/days-off",
-    response_model=list[DayOffResponse],
+    response_model=Page[DayOffResponse],
     dependencies=[Depends(get_current_user)],
 )
 def list_days_off(
     session: SessionDep,
+    pagination: PaginationDep,
     start_date: Annotated[
         date | None, Query(description="Filter by start date")
     ] = None,
@@ -152,21 +153,27 @@ def list_days_off(
     Get all days off
     """
     days_off = crud.list_days_off(
-        session=session, start_date=start_date, end_date=end_date
+        session=session,
+        start_date=start_date,
+        end_date=end_date,
+        page=pagination.page,
+        page_size=pagination.page_size,
     )
     return days_off
 
 
 @router.get(
     "/roles",
-    response_model=list[RoleResponse],
+    response_model=Page[RoleResponse],
     dependencies=[Depends(get_current_user)],
 )
-def list_roles(session: SessionDep):
+def list_roles(session: SessionDep, pagination: PaginationDep):
     """
     Get all roles
     """
-    roles = crud.list_roles(session)
+    roles = crud.list_roles(
+        session, page=pagination.page, page_size=pagination.page_size
+    )
     return roles
 
 

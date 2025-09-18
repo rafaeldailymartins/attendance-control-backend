@@ -170,10 +170,11 @@ def test_get_days_off(
 
     response = client.get("/config/days-off", headers=admin_token_headers)
     result = response.json()
+    items = result["items"]
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(result) > 0
-    for item in result:
+    assert len(items) > 0
+    for item in items:
         assert "id" in item
         assert "day" in item
         assert "description" in item
@@ -182,9 +183,10 @@ def test_get_days_off(
 def test_get_roles(client: TestClient, admin_token_headers: dict[str, str]):
     response = client.get("/config/roles", headers=admin_token_headers)
     result = response.json()
+    items = result["items"]
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(result) > 0
-    for item in result:
+    assert len(items) > 0
+    for item in items:
         assert "id" in item
         assert "name" in item
