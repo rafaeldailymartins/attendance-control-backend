@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 from app.api.app_config import crud as app_config_crud
 from app.api.shifts.schemas import ShiftCreate, ShiftUpdate
 from app.api.users import crud as users_crud
-from app.core.crud import db_update
+from app.core.crud import db_update, paginate
 from app.core.models import AttendanceType, Shift, User
 
 
@@ -61,14 +61,19 @@ def delete_shifts(session: Session, shifts: list[Shift], commit: bool = True):
         session.commit()
 
 
-def list_shifts(session: Session, user_id: int | None = None):
+def list_shifts(
+    session: Session,
+    user_id: int | None = None,
+    page: int | None = None,
+    page_size: int | None = None,
+):
     statement = select(Shift).join(User)
 
     statement = statement.where(User.active)
     if user_id is not None:
         statement = statement.where(Shift.user_id == user_id)
 
-    return session.exec(statement).all()
+    return paginate(query=statement, session=session, page=page, page_size=page_size)
 
 
 def get_current_shift(

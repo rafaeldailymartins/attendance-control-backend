@@ -7,7 +7,7 @@ from app.api.app_config import crud as app_config_crud
 from app.api.shifts import crud as shifts_crud
 from app.api.shifts.schemas import ShiftCreate
 from app.api.users.schemas import UserCreate, UserUpdate
-from app.core.crud import db_update
+from app.core.crud import db_update, paginate
 from app.core.models import User
 from app.core.security import get_password_hash, verify_password
 
@@ -21,8 +21,9 @@ def authenticate(session: Session, email: str, password: str):
     return db_user
 
 
-def list_users(session: Session):
-    return session.exec(select(User)).all()
+def list_users(session: Session, page: int | None = None, page_size: int | None = None):
+    statement = select(User)
+    return paginate(query=statement, session=session, page=page, page_size=page_size)
 
 
 def get_user_by_id(session: Session, id: int):

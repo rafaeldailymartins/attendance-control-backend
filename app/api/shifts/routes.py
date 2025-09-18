@@ -12,7 +12,7 @@ from app.api.shifts.schemas import (
 from app.api.users import crud as users_crud
 from app.core.config import settings
 from app.core.crud import db_delete
-from app.core.deps import CurrentUserDep, SessionDep, check_admin
+from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
 from app.core.exceptions import (
     Forbidden,
     InternalServerError,
@@ -20,7 +20,7 @@ from app.core.exceptions import (
     UserNotFound,
 )
 from app.core.models import AttendanceType
-from app.core.schemas import Message
+from app.core.schemas import Message, Page
 
 router = APIRouter(prefix="/shifts", tags=["shifts"])
 
@@ -71,15 +71,19 @@ def delete_shift(session: SessionDep, shift_id: int) -> Message:
 
 @router.get(
     "/",
-    response_model=list[ShiftResponse],
+    response_model=Page[ShiftResponse],
     dependencies=[Depends(check_admin)],
 )
-def list_shifts(session: SessionDep, user_id: int | None = None):
+def list_shifts(
+    session: SessionDep, pagination: PaginationDep, user_id: int | None = None
+):
     """
     Get all shifts. Can be filtered by user id.
     Inactive user shifts will not be shown.
     """
-    shifts = crud.list_shifts(session, user_id=user_id)
+    shifts = crud.list_shifts(
+        session, user_id=user_id, page=pagination.page, page_size=pagination.page_size
+    )
     return shifts
 
 

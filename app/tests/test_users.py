@@ -137,10 +137,11 @@ def test_get_users(client: TestClient, admin_token_headers: dict[str, str]):
 
     response = client.get("/users", headers=admin_token_headers)
     result = response.json()
+    items = result["items"]
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(result) > 0
-    for item in result:
+    assert len(items) > 0
+    for item in items:
         assert_all_user_fields(item)
 
 
