@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.records import crud
 from app.api.records.schemas import (
@@ -17,6 +17,7 @@ from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
 from app.core.exceptions import (
     AttendanceNotFound,
+    BaseHTTPException,
     Forbidden,
     ShiftNotFound,
     UserNotFound,
@@ -168,6 +169,20 @@ def list_absences(
         user = users_crud.get_user_by_id(session=session, id=user_id)
         if not user:
             raise UserNotFound()
+
+    if start_date > end_date:
+        raise BaseHTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="A data inicial deve ser menor ou igual a data final",
+        )
+
+    diff_days = (end_date - start_date).days
+
+    if diff_days > 90:
+        raise BaseHTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            message="O período entre as datas deve ser menor que 90 dias",
+        )
 
     absences = crud.list_absences(
         session=session,
