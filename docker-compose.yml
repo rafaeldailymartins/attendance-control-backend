@@ -1,3 +1,5 @@
+# This docker-compose.yml file is only used to simulate the production environment locally.
+# This file is not actually used to deploy the application, and any changes made here will not affect production.
 services:
 
   db:
