@@ -78,3 +78,7 @@ class Page[T](BaseSchema):
     total_pages: int = Field(description="Total number of pages")
     current_page: int = Field(description="Page number")
     current_page_size: int = Field(description="Number of items per page")
+
+
+class ApiError(BaseSchema):
+    detail: Message

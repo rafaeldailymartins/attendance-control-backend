@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query
 
 from app.api.records import crud
 from app.api.records.schemas import (
@@ -15,20 +15,19 @@ from app.api.users import crud as users_crud
 from app.core.config import settings
 from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
-from app.core.exceptions import (
-    AttendanceNotFound,
-    BaseHTTPException,
-    Forbidden,
-    ShiftNotFound,
-    UserNotFound,
-)
+from app.core.exceptions import BadRequest, Forbidden, NotFound
 from app.core.models import AttendanceType
 from app.core.schemas import Message, Page
+from app.core.utils import BAD_REQUEST_ERROR, CURRENT_USER_ERRORS, error_responses
 
 router = APIRouter(prefix="/records", tags=["records"])
 
 
-@router.post("/attendances", response_model=AttendanceResponse)
+@router.post(
+    "/attendances",
+    response_model=AttendanceResponse,
+    responses=CURRENT_USER_ERRORS,
+)
 def create_new_attendance(
     session: SessionDep, body: AttendanceCreate, current_user: CurrentUserDep
 ):
@@ -37,7 +36,7 @@ def create_new_attendance(
     """
     shift = shifts_crud.get_shift_by_id(session, body.shift_id)
     if not shift:
-        raise ShiftNotFound()
+        raise NotFound("Turno não encontrado.")
 
     is_admin = (
         current_user.role is not None
@@ -58,6 +57,7 @@ def create_new_attendance(
     "/attendances/{attendance_id}",
     response_model=AttendanceResponse,
     dependencies=[Depends(check_admin)],
+    responses=CURRENT_USER_ERRORS,
 )
 def update_attendance(session: SessionDep, attendance_id: int, body: AttendanceUpdate):
     """
@@ -66,28 +66,39 @@ def update_attendance(session: SessionDep, attendance_id: int, body: AttendanceU
     if body.shift_id is not None:
         shift = shifts_crud.get_shift_by_id(session=session, id=body.shift_id)
         if not shift:
-            raise ShiftNotFound()
+            raise NotFound("Turno não encontrado.")
 
     attendance = crud.get_attendance_by_id(session, attendance_id)
     if not attendance:
-        raise AttendanceNotFound()
+        raise NotFound("Registro não encontrado.")
     crud.update_attendance(session, attendance, body)
     return attendance
 
 
-@router.delete("/attendances/{attendance_id}", dependencies=[Depends(check_admin)])
+@router.delete(
+    "/attendances/{attendance_id}",
+    dependencies=[Depends(check_admin)],
+    responses=CURRENT_USER_ERRORS,
+)
 def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
     """
     Delete a attendance.
     """
     attendance = crud.get_attendance_by_id(session, attendance_id)
     if not attendance:
-        raise AttendanceNotFound()
+        raise NotFound("Registro não encontrado.")
     db_delete(session, attendance)
     return Message(message="Registro deletado com sucesso")
 
 
-@router.get("/attendances", response_model=Page[AttendanceResponse])
+ERROR_RESPONSES = error_responses([404])
+
+
+@router.get(
+    "/attendances",
+    response_model=Page[AttendanceResponse],
+    responses=ERROR_RESPONSES,
+)
 def list_attendances(
     session: SessionDep,
     pagination: PaginationDep,
@@ -113,7 +124,7 @@ def list_attendances(
     if user_id is not None:
         user = users_crud.get_user_by_id(session=session, id=user_id)
         if not user:
-            raise UserNotFound()
+            raise NotFound("Usuário não encontrado.")
 
     attendances = crud.list_attendances(
         session=session,
@@ -130,6 +141,7 @@ def list_attendances(
 @router.get(
     "/absences",
     response_model=list[AbsenceResponse],
+    responses={**CURRENT_USER_ERRORS, **BAD_REQUEST_ERROR},
 )
 def list_absences(
     session: SessionDep,
@@ -168,21 +180,15 @@ def list_absences(
     if user_id is not None:
         user = users_crud.get_user_by_id(session=session, id=user_id)
         if not user:
-            raise UserNotFound()
+            raise NotFound("Usuário não encontrado.")
 
     if start_date > end_date:
-        raise BaseHTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            message="A data inicial deve ser menor ou igual a data final",
-        )
+        raise BadRequest("A data inicial deve ser menor ou igual a data final.")
 
     diff_days = (end_date - start_date).days
 
     if diff_days > 90:
-        raise BaseHTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            message="O período entre as datas deve ser menor que 90 dias",
-        )
+        raise BadRequest("O período entre as datas deve ser menor que 90 dias.")
 
     absences = crud.list_absences(
         session=session,

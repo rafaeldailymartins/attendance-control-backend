@@ -79,7 +79,7 @@ class Settings(BaseSettings):
     @property
     def cors_origins(self) -> list[str]:
         return [str(origin).rstrip("/") for origin in self.BACKEND_CORS_ORIGINS] + [
-            str(self.FRONTEND_HOST)
+            str(self.FRONTEND_HOST).rstrip("/")
         ]
 
     # Check secrets

@@ -1,18 +1,22 @@
 from fastapi import HTTPException, status
 
+from app.core.schemas import Message
+
 
 class BaseHTTPException(HTTPException):
-    """Base exception for all HTPP exceptions."""
+    """Base exception for all HTTP exceptions."""
 
     def __init__(self, status_code: int, message: str):
-        detail = {"message": message}
-        super().__init__(status_code=status_code, detail=detail)
+        """Base exception for all HTTP exceptions."""
+        detail = Message(message=message)
+        super().__init__(status_code=status_code, detail=detail.model_dump())
 
 
 class InternalServerError(BaseHTTPException):
     """Base exception for internal server error."""
 
     def __init__(self, message: str = "Ocorreu um erro no servidor"):
+        """Internal Server Error (HTTP 500)."""
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, message=message
         )
@@ -22,53 +26,29 @@ class Forbidden(BaseHTTPException):
     """Base exception for forbbiden."""
 
     def __init__(self, message: str = "Acesso negado."):
+        """Forbidden (HTTP 403)."""
         super().__init__(status_code=status.HTTP_403_FORBIDDEN, message=message)
 
 
-class IncorretEmailOrPassword(BaseHTTPException):
-    """Base exception when the email or password is incorrect."""
-
-    def __init__(self, message: str = "E-mail ou senha incorreta."):
-        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, message=message)
-
-
-class Unauthenticated(BaseHTTPException):
-    """Base exception for unauthenticated."""
+class Unauthorized(BaseHTTPException):
+    """Base exception for unauthorized."""
 
     def __init__(self, message: str = "Usuário não autenticado"):
+        """Unauthorized (HTTP 401)."""
         super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, message=message)
 
 
-class RoleNotFound(BaseHTTPException):
-    """Base exception when role was not found."""
+class NotFound(BaseHTTPException):
+    """Base exception for not found."""
 
-    def __init__(self, message: str = "Cargo não encontrado."):
+    def __init__(self, message: str = "Usuário não autenticado"):
+        """Not found (HTTP 404)."""
         super().__init__(status_code=status.HTTP_404_NOT_FOUND, message=message)
 
 
-class UserNotFound(BaseHTTPException):
-    """Base exception when user was not found."""
+class BadRequest(BaseHTTPException):
+    """Base exception for bad request."""
 
-    def __init__(self, message: str = "Usuário não encontrado."):
-        super().__init__(status_code=status.HTTP_404_NOT_FOUND, message=message)
-
-
-class ShiftNotFound(BaseHTTPException):
-    """Base exception when shift was not found."""
-
-    def __init__(self, message: str = "Turno não encontrado."):
-        super().__init__(status_code=status.HTTP_404_NOT_FOUND, message=message)
-
-
-class AttendanceNotFound(BaseHTTPException):
-    """Base exception when attendance was not found."""
-
-    def __init__(self, message: str = "Registro não encontrado."):
-        super().__init__(status_code=status.HTTP_404_NOT_FOUND, message=message)
-
-
-class DayOffNotFound(BaseHTTPException):
-    """Base exception when day off was not found."""
-
-    def __init__(self, message: str = "Dia livre não encontrado."):
-        super().__init__(status_code=status.HTTP_404_NOT_FOUND, message=message)
+    def __init__(self, message: str = "Usuário não autenticado"):
+        """Bad request (HTTP 400)."""
+        super().__init__(status_code=status.HTTP_400_BAD_REQUEST, message=message)
