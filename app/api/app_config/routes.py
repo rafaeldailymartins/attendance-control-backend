@@ -18,32 +18,11 @@ from app.core.crud import db_delete
 from app.core.deps import PaginationDep, SessionDep, check_admin, get_current_user
 from app.core.exceptions import BadRequest, InternalServerError, NotFound
 from app.core.schemas import Message, Page
-from app.core.utils import BAD_REQUEST_ERROR, CURRENT_USER_ERRORS
 
 router = APIRouter(prefix="/config", tags=["config"])
 
 
-@router.post(
-    "/days-off",
-    response_model=DayOffResponse,
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
-)
-def create_new_day_off(session: SessionDep, body: DayOffCreate):
-    """
-    Create new day off
-    """
-    day_off_create = DayOffCreate.model_validate(body)
-    day_off = crud.create_day_off(session, day_off_create)
-    return day_off
-
-
-@router.post(
-    "/roles",
-    response_model=RoleResponse,
-    dependencies=[Depends(check_admin)],
-    responses={**CURRENT_USER_ERRORS, **BAD_REQUEST_ERROR},
-)
+@router.post("/roles", response_model=RoleResponse, dependencies=[Depends(check_admin)])
 def create_new_role(session: SessionDep, body: RoleCreate):
     """
     Create new role
@@ -58,10 +37,7 @@ def create_new_role(session: SessionDep, body: RoleCreate):
 
 
 @router.patch(
-    "/roles/{role_id}",
-    response_model=RoleResponse,
-    dependencies=[Depends(check_admin)],
-    responses={**CURRENT_USER_ERRORS, **BAD_REQUEST_ERROR},
+    "/roles/{role_id}", response_model=RoleResponse, dependencies=[Depends(check_admin)]
 )
 def update_role(session: SessionDep, role_id: int, body: RoleUpdate):
     """
@@ -79,11 +55,20 @@ def update_role(session: SessionDep, role_id: int, body: RoleUpdate):
     return role
 
 
+@router.post(
+    "/days-off", response_model=DayOffResponse, dependencies=[Depends(check_admin)]
+)
+def create_new_day_off(session: SessionDep, body: DayOffCreate):
+    """
+    Create new day off
+    """
+    day_off_create = DayOffCreate.model_validate(body)
+    day_off = crud.create_day_off(session, day_off_create)
+    return day_off
+
+
 @router.patch(
-    "/",
-    response_model=AppConfigResponse,
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
+    "/", response_model=AppConfigResponse, dependencies=[Depends(check_admin)]
 )
 def update_app_config(session: SessionDep, body: AppConfigUpdate):
     """
@@ -100,11 +85,7 @@ def update_app_config(session: SessionDep, body: AppConfigUpdate):
     return app_config
 
 
-@router.delete(
-    "/days-off/{day_off_id}",
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
-)
+@router.delete("/days-off/{day_off_id}", dependencies=[Depends(check_admin)])
 def delete_day_off(session: SessionDep, day_off_id: int) -> Message:
     """
     Delete a day off.
@@ -116,11 +97,7 @@ def delete_day_off(session: SessionDep, day_off_id: int) -> Message:
     return Message(message="Dia livre deletado com sucesso")
 
 
-@router.delete(
-    "/roles/{role_id}",
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
-)
+@router.delete("/roles/{role_id}", dependencies=[Depends(check_admin)])
 def delete_role(session: SessionDep, role_id: int) -> Message:
     """
     Delete a role.
@@ -133,10 +110,7 @@ def delete_role(session: SessionDep, role_id: int) -> Message:
 
 
 @router.get(
-    "/",
-    response_model=AppConfigResponse,
-    dependencies=[Depends(get_current_user)],
-    responses=CURRENT_USER_ERRORS,
+    "/", response_model=AppConfigResponse, dependencies=[Depends(get_current_user)]
 )
 def get_app_config(session: SessionDep):
     """
@@ -155,7 +129,6 @@ def get_app_config(session: SessionDep):
     "/days-off",
     response_model=Page[DayOffResponse],
     dependencies=[Depends(get_current_user)],
-    responses=CURRENT_USER_ERRORS,
 )
 def list_days_off(
     session: SessionDep,
@@ -182,7 +155,6 @@ def list_days_off(
     "/roles",
     response_model=Page[RoleResponse],
     dependencies=[Depends(get_current_user)],
-    responses=CURRENT_USER_ERRORS,
 )
 def list_roles(session: SessionDep, pagination: PaginationDep):
     """

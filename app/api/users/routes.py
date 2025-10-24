@@ -8,15 +8,11 @@ from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
 from app.core.exceptions import BadRequest, Forbidden, NotFound, Unauthorized
 from app.core.schemas import Message, Page, Token
-from app.core.utils import BAD_REQUEST_ERROR, CURRENT_USER_ERRORS, error_responses
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-ERROR_RESPONSES = error_responses([401])
-
-
-@router.post("/login", responses=ERROR_RESPONSES)
+@router.post("/login")
 def login(token: TokenDep) -> Token:
     """
     OAuth2 compatible token login, get an access token for future requests.
@@ -41,7 +37,7 @@ def login_swagger(token: TokenDep):
     return token.model_dump()
 
 
-@router.post("/me", response_model=UserResponse, responses=CURRENT_USER_ERRORS)
+@router.get("/me", response_model=UserResponse)
 def get_current_user(current_user: CurrentUserDep):
     """
     Get current authenticated user.
@@ -49,12 +45,7 @@ def get_current_user(current_user: CurrentUserDep):
     return current_user
 
 
-@router.post(
-    "/",
-    response_model=UserResponse,
-    dependencies=[Depends(check_admin)],
-    responses={**CURRENT_USER_ERRORS, **BAD_REQUEST_ERROR},
-)
+@router.post("/", response_model=UserResponse, dependencies=[Depends(check_admin)])
 def create_new_user(session: SessionDep, body: UserCreate):
     """
     Create new user
@@ -73,12 +64,7 @@ def create_new_user(session: SessionDep, body: UserCreate):
     return user
 
 
-@router.get(
-    "/",
-    response_model=Page[UserResponse],
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
-)
+@router.get("/", response_model=Page[UserResponse], dependencies=[Depends(check_admin)])
 def list_users(session: SessionDep, pagination: PaginationDep):
     """
     Get a list with all users.
@@ -87,10 +73,7 @@ def list_users(session: SessionDep, pagination: PaginationDep):
 
 
 @router.get(
-    "/{user_id}",
-    response_model=UserResponse,
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
+    "/{user_id}", response_model=UserResponse, dependencies=[Depends(check_admin)]
 )
 def get_user(session: SessionDep, user_id: int):
     """
@@ -103,10 +86,7 @@ def get_user(session: SessionDep, user_id: int):
 
 
 @router.patch(
-    "/{user_id}",
-    response_model=UserResponse,
-    dependencies=[Depends(check_admin)],
-    responses={**CURRENT_USER_ERRORS, **BAD_REQUEST_ERROR},
+    "/{user_id}", response_model=UserResponse, dependencies=[Depends(check_admin)]
 )
 def update_user(session: SessionDep, user_id: int, body: UserUpdate):
     """
@@ -129,11 +109,7 @@ def update_user(session: SessionDep, user_id: int, body: UserUpdate):
     return user
 
 
-@router.delete(
-    "/{user_id}",
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
-)
+@router.delete("/{user_id}", dependencies=[Depends(check_admin)])
 def delete_user(
     session: SessionDep, user_id: int, current_user: CurrentUserDep
 ) -> Message:

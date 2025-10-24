@@ -1,15 +1,14 @@
-from fastapi import HTTPException, status
-
-from app.core.schemas import Message
+from fastapi import status
 
 
-class BaseHTTPException(HTTPException):
+class BaseHTTPException(Exception):
     """Base exception for all HTTP exceptions."""
 
-    def __init__(self, status_code: int, message: str):
+    def __init__(self, status_code: int, message: str, metadata: None = None):
         """Base exception for all HTTP exceptions."""
-        detail = Message(message=message)
-        super().__init__(status_code=status_code, detail=detail.model_dump())
+        self.status_code = status_code
+        self.message = message
+        self.metadata = metadata
 
 
 class InternalServerError(BaseHTTPException):

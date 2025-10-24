@@ -1,4 +1,4 @@
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -80,5 +80,10 @@ class Page[T](BaseSchema):
     current_page_size: int = Field(description="Number of items per page")
 
 
+class ApiErrorDetail(BaseSchema):
+    message: str
+    metadata: Any = None
+
+
 class ApiError(BaseSchema):
-    detail: Message
+    detail: ApiErrorDetail

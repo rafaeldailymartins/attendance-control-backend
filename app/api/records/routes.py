@@ -18,16 +18,11 @@ from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
 from app.core.exceptions import BadRequest, Forbidden, NotFound
 from app.core.models import AttendanceType
 from app.core.schemas import Message, Page
-from app.core.utils import BAD_REQUEST_ERROR, CURRENT_USER_ERRORS, error_responses
 
 router = APIRouter(prefix="/records", tags=["records"])
 
 
-@router.post(
-    "/attendances",
-    response_model=AttendanceResponse,
-    responses=CURRENT_USER_ERRORS,
-)
+@router.post("/attendances", response_model=AttendanceResponse)
 def create_new_attendance(
     session: SessionDep, body: AttendanceCreate, current_user: CurrentUserDep
 ):
@@ -57,7 +52,6 @@ def create_new_attendance(
     "/attendances/{attendance_id}",
     response_model=AttendanceResponse,
     dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
 )
 def update_attendance(session: SessionDep, attendance_id: int, body: AttendanceUpdate):
     """
@@ -75,11 +69,7 @@ def update_attendance(session: SessionDep, attendance_id: int, body: AttendanceU
     return attendance
 
 
-@router.delete(
-    "/attendances/{attendance_id}",
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
-)
+@router.delete("/attendances/{attendance_id}", dependencies=[Depends(check_admin)])
 def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
     """
     Delete a attendance.
@@ -91,14 +81,7 @@ def delete_attendance(session: SessionDep, attendance_id: int) -> Message:
     return Message(message="Registro deletado com sucesso")
 
 
-ERROR_RESPONSES = error_responses([404])
-
-
-@router.get(
-    "/attendances",
-    response_model=Page[AttendanceResponse],
-    responses=ERROR_RESPONSES,
-)
+@router.get("/attendances", response_model=Page[AttendanceResponse])
 def list_attendances(
     session: SessionDep,
     pagination: PaginationDep,
@@ -138,11 +121,7 @@ def list_attendances(
     return attendances
 
 
-@router.get(
-    "/absences",
-    response_model=list[AbsenceResponse],
-    responses={**CURRENT_USER_ERRORS, **BAD_REQUEST_ERROR},
-)
+@router.get("/absences", response_model=list[AbsenceResponse])
 def list_absences(
     session: SessionDep,
     current_user: CurrentUserDep,

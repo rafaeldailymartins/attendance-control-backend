@@ -16,17 +16,11 @@ from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
 from app.core.exceptions import Forbidden, InternalServerError, NotFound
 from app.core.models import AttendanceType
 from app.core.schemas import Message, Page
-from app.core.utils import CURRENT_USER_ERRORS
 
 router = APIRouter(prefix="/shifts", tags=["shifts"])
 
 
-@router.post(
-    "/",
-    response_model=ShiftResponse,
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
-)
+@router.post("/", response_model=ShiftResponse, dependencies=[Depends(check_admin)])
 def create_new_shift(session: SessionDep, body: ShiftCreate):
     """
     Create new shift
@@ -40,10 +34,7 @@ def create_new_shift(session: SessionDep, body: ShiftCreate):
 
 
 @router.patch(
-    "/{shift_id}",
-    response_model=ShiftResponse,
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
+    "/{shift_id}", response_model=ShiftResponse, dependencies=[Depends(check_admin)]
 )
 def update_shift(session: SessionDep, shift_id: int, body: ShiftUpdate):
     """
@@ -61,11 +52,7 @@ def update_shift(session: SessionDep, shift_id: int, body: ShiftUpdate):
     return shift
 
 
-@router.delete(
-    "/{shift_id}",
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
-)
+@router.delete("/{shift_id}", dependencies=[Depends(check_admin)])
 def delete_shift(session: SessionDep, shift_id: int) -> Message:
     """
     Delete a shift.
@@ -78,10 +65,7 @@ def delete_shift(session: SessionDep, shift_id: int) -> Message:
 
 
 @router.get(
-    "/",
-    response_model=Page[ShiftResponse],
-    dependencies=[Depends(check_admin)],
-    responses=CURRENT_USER_ERRORS,
+    "/", response_model=Page[ShiftResponse], dependencies=[Depends(check_admin)]
 )
 def list_shifts(
     session: SessionDep,
@@ -98,11 +82,7 @@ def list_shifts(
     return shifts
 
 
-@router.get(
-    "/current",
-    response_model=UserCurrentShiftResponse,
-    responses=CURRENT_USER_ERRORS,
-)
+@router.get("/current", response_model=UserCurrentShiftResponse)
 def get_current_shift(
     session: SessionDep,
     current_user: CurrentUserDep,
