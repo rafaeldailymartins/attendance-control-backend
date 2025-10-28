@@ -29,7 +29,7 @@ def get_current_user(
         )
         token_data = TokenPayload(**payload)
     except (jwt.InvalidTokenError, ValidationError):
-        raise Forbidden("Não foi possível validar as credenciais")
+        raise Unauthorized("Não foi possível validar as credenciais")
     user = session.get(User, token_data.sub)
     if not user:
         raise NotFound("Usuário não encontrado.")
