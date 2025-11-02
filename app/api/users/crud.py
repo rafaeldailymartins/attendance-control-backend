@@ -21,8 +21,16 @@ def authenticate(session: Session, email: str, password: str):
     return db_user
 
 
-def list_users(session: Session, page: int | None = None, page_size: int | None = None):
+def list_users(
+    session: Session,
+    page: int | None = None,
+    page_size: int | None = None,
+    search: str | None = None,
+):
     statement = select(User)
+    if search:
+        statement = statement.where(User.name.ilike(f"%{search}%"))
+
     return paginate(query=statement, session=session, page=page, page_size=page_size)
 
 

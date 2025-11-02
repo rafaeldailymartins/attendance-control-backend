@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
 
 from app.api.app_config import crud as app_config_crud
 from app.api.users import crud
@@ -65,11 +67,21 @@ def create_new_user(session: SessionDep, body: UserCreate):
 
 
 @router.get("/", response_model=Page[UserResponse], dependencies=[Depends(check_admin)])
-def list_users(session: SessionDep, pagination: PaginationDep):
+def list_users(
+    session: SessionDep,
+    pagination: PaginationDep,
+    search: Annotated[
+        str | None,
+        Query(
+            description="Find users by name. "
+            "Enter part of the name to get matching results."
+        ),
+    ] = None,
+):
     """
     Get a list with all users.
     """
-    return crud.list_users(session, pagination.page, pagination.page_size)
+    return crud.list_users(session, pagination.page, pagination.page_size, search)
 
 
 @router.get(
