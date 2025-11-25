@@ -1,4 +1,6 @@
-from pydantic import EmailStr, Field
+from datetime import time
+
+from pydantic import EmailStr, Field, field_serializer
 
 from app.api.shifts.schemas import ShiftBase
 from app.core.schemas import BaseSchema
@@ -17,6 +19,10 @@ class UserBase(BaseSchema):
 
 class UserShiftResponse(ShiftBase):
     id: int = Field(description="The shift id.")
+
+    @field_serializer("start_time", "end_time")
+    def serialize_time(self, value: time):
+        return value.replace(microsecond=0).isoformat()
 
 
 class UserResponse(UserBase):

@@ -1,6 +1,6 @@
 from datetime import time
 
-from pydantic import Field
+from pydantic import Field, field_serializer
 
 from app.core.models import WeekdayEnum
 from app.core.schemas import BaseSchema
@@ -22,6 +22,10 @@ class ShiftCreate(ShiftBase):
 class ShiftResponse(ShiftBase):
     id: int = Field(description="The shift id.")
     user_id: int = Field(description="The ID corresponding to the shift's user.")
+
+    @field_serializer("start_time", "end_time")
+    def serialize_time(self, value: time):
+        return value.replace(microsecond=0).isoformat()
 
 
 class ShiftUpdate(BaseSchema):
