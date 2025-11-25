@@ -29,7 +29,7 @@ def list_users(
 ):
     statement = select(User)
     if search:
-        statement = statement.where(User.name.ilike(f"%{search}%"))
+        statement = statement.where(User.name.ilike(f"%{search}%"))  # type: ignore[attr-defined]
 
     return paginate(query=statement, session=session, page=page, page_size=page_size)
 
