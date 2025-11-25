@@ -112,7 +112,7 @@ def list_absences(
     user_id: int | None = None,
     absence_type: AttendanceType | None = None,
 ):
-    shifts = shifts_crud.list_shifts(session, user_id).items
+    shifts = shifts_crud.list_shifts(session, user_id)
 
     shifts_by_weekday: defaultdict[WeekdayEnum, list[Shift]] = defaultdict(list[Shift])
     for shift in shifts:
