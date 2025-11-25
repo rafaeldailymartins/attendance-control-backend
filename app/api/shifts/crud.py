@@ -73,6 +73,9 @@ def list_shifts(
     if user_id is not None:
         statement = statement.where(Shift.user_id == user_id)
 
+    if not (page and page_size):
+        return list(session.exec(statement).all())
+
     return paginate(query=statement, session=session, page=page, page_size=page_size)
 
 

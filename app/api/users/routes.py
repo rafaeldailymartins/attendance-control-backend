@@ -3,6 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query
 
 from app.api.app_config import crud as app_config_crud
+from app.api.shifts import crud as shifts_crud
+from app.api.shifts.schemas import ShiftResponse
 from app.api.users import crud
 from app.api.users.deps import TokenDep
 from app.api.users.schemas import UserCreate, UserResponse, UserUpdate
@@ -82,6 +84,22 @@ def list_users(
     Get a list with all users.
     """
     return crud.list_users(session, pagination.page, pagination.page_size, search)
+
+
+@router.get(
+    "/{user_id}/shifts",
+    response_model=list[ShiftResponse],
+    dependencies=[Depends(check_admin)],
+)
+def list_user_shifts(session: SessionDep, user_id: int):
+    """
+    Get user shifts
+    """
+    user = crud.get_user_by_id(session, user_id)
+    if not user:
+        raise NotFound("Usuário não encontrado.")
+    shifts = shifts_crud.list_shifts(session, user_id)
+    return shifts
 
 
 @router.get(
