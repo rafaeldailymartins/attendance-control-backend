@@ -89,10 +89,10 @@ def test_login_swagger(client: TestClient):
 
 
 def test_get_me(client: TestClient, admin_token_headers: dict[str, str]):
-    response = client.post("/users/me")
+    response = client.get("/users/me")
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    response = client.post("/users/me", headers=admin_token_headers)
+    response = client.get("/users/me", headers=admin_token_headers)
     result = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert_all_user_fields(result)
