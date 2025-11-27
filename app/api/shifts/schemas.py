@@ -1,6 +1,6 @@
 from datetime import time
 
-from pydantic import Field, field_serializer
+from pydantic import EmailStr, Field, field_serializer
 
 from app.core.models import WeekdayEnum
 from app.core.schemas import BaseSchema
@@ -19,9 +19,24 @@ class ShiftCreate(ShiftBase):
     user_id: int = Field(description="The ID corresponding to the shift's user.")
 
 
+class ShiftUserResponse(BaseSchema):
+    id: int = Field(description="The user id.")
+    active: bool = Field(
+        description="False if the user should be hidden when returning absences."
+    )
+    email: EmailStr = Field(
+        description="The user's email, also used as the username when logging in."
+    )
+    name: str = Field(max_length=255, description="The user's full name.")
+    role_id: int | None = Field(
+        default=None, description="The ID corresponding to the user's role."
+    )
+
+
 class ShiftResponse(ShiftBase):
     id: int = Field(description="The shift id.")
     user_id: int = Field(description="The ID corresponding to the shift's user.")
+    user: ShiftUserResponse
 
     @field_serializer("start_time", "end_time")
     def serialize_time(self, value: time):

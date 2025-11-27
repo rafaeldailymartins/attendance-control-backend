@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from pydantic import Field
 
+from app.api.shifts.schemas import ShiftResponse
 from app.core.models import AttendanceType
 from app.core.schemas import BaseSchema
 
@@ -26,6 +27,7 @@ class AttendanceResponse(AttendanceBase):
         "If it's less than the AppConfig setting (mintues_late for clock in "
         "and minutes_early for clock out), the value is saved as 0."
     )
+    shift: ShiftResponse = Field(description="The attendance's shift.")
 
 
 class AttendanceUpdate(BaseSchema):
