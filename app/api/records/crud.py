@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
-from sqlmodel import Session, select
+from sqlmodel import Session, desc, select
 
 from app.api.app_config import crud as app_config_crud
 from app.api.records.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
@@ -96,6 +96,8 @@ def list_attendances(
     if end_timestamp is not None:
         statement = statement.where(Attendance.timestamp <= end_timestamp)
 
+    statement = statement.order_by(desc(Attendance.timestamp))
+
     return paginate(query=statement, session=session, page=page, page_size=page_size)
 
 
@@ -112,7 +114,7 @@ def list_absences(
     user_id: int | None = None,
     absence_type: AttendanceType | None = None,
 ):
-    shifts = shifts_crud.list_shifts(session, user_id).items
+    shifts = shifts_crud.list_shifts(session, user_id)
 
     shifts_by_weekday: defaultdict[WeekdayEnum, list[Shift]] = defaultdict(list[Shift])
     for shift in shifts:
