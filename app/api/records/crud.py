@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
-from sqlmodel import Session, select
+from sqlmodel import Session, desc, select
 
 from app.api.app_config import crud as app_config_crud
 from app.api.records.schemas import AbsenceResponse, AttendanceUpdate, ShiftDate
@@ -95,6 +95,8 @@ def list_attendances(
         statement = statement.where(Attendance.timestamp >= start_timestamp)
     if end_timestamp is not None:
         statement = statement.where(Attendance.timestamp <= end_timestamp)
+
+    statement = statement.order_by(desc(Attendance.timestamp))
 
     return paginate(query=statement, session=session, page=page, page_size=page_size)
 
