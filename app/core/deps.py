@@ -8,7 +8,7 @@ from sqlmodel import Session
 
 from app.core.config import settings
 from app.core.db import get_session
-from app.core.exceptions import Forbidden, NotFound, Unauthorized
+from app.core.exceptions import Forbidden, Unauthorized
 from app.core.models import User
 from app.core.schemas import PaginationParams, TokenPayload
 
@@ -32,7 +32,7 @@ def get_current_user(
         raise Unauthorized("Não foi possível validar as credenciais")
     user = session.get(User, token_data.sub)
     if not user:
-        raise NotFound("Usuário não encontrado.")
+        raise Unauthorized("Usuário não encontrado.")
     return user
 
 
