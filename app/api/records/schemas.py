@@ -51,7 +51,7 @@ class AttendanceUpdate(BaseSchema):
 
 
 class AbsenceResponse(BaseSchema):
-    shift_id: int = Field(description="The ID corresponding to the absence's shift.")
+    shift: ShiftResponse = Field(description="The attendance's shift.")
     day: date = Field(description="The date that attendance should have been recorded.")
     absence_type: AttendanceType = Field(
         description="The type of absence. It can be 0 for clock in, or 1 for clock out."
@@ -70,4 +70,4 @@ class AbsenceResponse(BaseSchema):
 
 class ShiftDate(BaseSchema):
     day: date
-    shift_id: int
+    shift: ShiftResponse

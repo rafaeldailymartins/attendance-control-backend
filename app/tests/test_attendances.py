@@ -191,7 +191,7 @@ def test_get_absences(
     assert response.status_code == status.HTTP_200_OK
     assert len(result) > 0
     for item in result:
-        assert "shiftId" in item
+        assert "shift" in item
         assert "day" in item
         assert "absenceType" in item
         assert "minutesLate" in item

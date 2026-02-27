@@ -62,7 +62,6 @@ def test_create_new_shift(
     assert result["weekday"] == data["weekday"]
     assert result["startTime"] == data["startTime"]
     assert result["endTime"] == data["endTime"]
-    assert result["userId"] == data["userId"]
 
     shift_db = db.get(Shift, result["id"])
     assert shift_db
@@ -98,7 +97,7 @@ def test_update_shift(
     assert "id" in result
     assert result["weekday"] == shift.weekday
     assert result["startTime"] == data["startTime"]
-    assert result["userId"] == shift.user_id
+    assert result["user"]["id"] == shift.user.id
 
     shift_db = db.get(Shift, shift.id)
     db.refresh(shift_db)
@@ -155,7 +154,7 @@ def test_get_shifts(
         assert "weekday" in item
         assert "startTime" in item
         assert "endTime" in item
-        assert "userId" in item
+        assert "user" in item
 
 
 def test_get_current_shift(
@@ -196,4 +195,3 @@ def test_get_current_shift(
     assert shift_result["weekday"] == shift["weekday"]
     assert shift_result["startTime"] == shift["start_time"]
     assert shift_result["endTime"] == shift["end_time"]
-    assert shift_result["userId"] == shift["user_id"]

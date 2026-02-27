@@ -2,6 +2,7 @@ from datetime import time
 
 from pydantic import EmailStr, Field, field_serializer
 
+from app.api.app_config.schemas import RoleResponse
 from app.core.models import WeekdayEnum
 from app.core.schemas import BaseSchema
 
@@ -28,14 +29,11 @@ class ShiftUserResponse(BaseSchema):
         description="The user's email, also used as the username when logging in."
     )
     name: str = Field(max_length=255, description="The user's full name.")
-    role_id: int | None = Field(
-        default=None, description="The ID corresponding to the user's role."
-    )
+    role: RoleResponse | None = Field(default=None, description="The user's role.")
 
 
 class ShiftResponse(ShiftBase):
     id: int = Field(description="The shift id.")
-    user_id: int = Field(description="The ID corresponding to the shift's user.")
     user: ShiftUserResponse
 
     @field_serializer("start_time", "end_time")

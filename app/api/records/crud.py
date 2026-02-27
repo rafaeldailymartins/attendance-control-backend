@@ -142,7 +142,7 @@ def list_absences(
                     or dt >= shift.user.updated_shifts_at.date()
                 )
             ):
-                shift_dates.append(ShiftDate(day=dt, shift_id=shift.id))
+                shift_dates.append(ShiftDate(day=dt, shift=shift))
 
     attendances = list_attendances(
         session=session,
@@ -167,24 +167,24 @@ def list_absences(
             and attendance.attendance_type == AttendanceType.CLOCK_OUT
         ]
 
-        if entry.shift_id not in clock_in_ids and absence_type in (
+        if entry.shift.id not in clock_in_ids and absence_type in (
             None,
             AttendanceType.CLOCK_IN,
         ):
             absences.append(
                 AbsenceResponse(
-                    shift_id=entry.shift_id,
+                    shift=entry.shift,
                     day=entry.day,
                     absence_type=AttendanceType.CLOCK_IN,
                 )
             )
-        if entry.shift_id not in clock_out_ids and absence_type in (
+        if entry.shift.id not in clock_out_ids and absence_type in (
             None,
             AttendanceType.CLOCK_OUT,
         ):
             absences.append(
                 AbsenceResponse(
-                    shift_id=entry.shift_id,
+                    shift=entry.shift,
                     day=entry.day,
                     absence_type=AttendanceType.CLOCK_OUT,
                 )
@@ -194,7 +194,7 @@ def list_absences(
         if attendance.minutes_late > 0:
             absences.append(
                 AbsenceResponse(
-                    shift_id=attendance.shift_id,
+                    shift=attendance.shift,
                     day=attendance.timestamp.date(),
                     absence_type=attendance.attendance_type,
                     attendance_timestamp=attendance.timestamp,
