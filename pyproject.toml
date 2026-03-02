@@ -48,3 +48,8 @@ select = [
 ignore = [
     "B904",  # Allow raising exceptions without from e, for HTTPException
 ]
+
+[tool.mypy]
+plugins = [
+  "pydantic.mypy"
+]
