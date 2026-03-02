@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 from pydantic import Field
 
@@ -71,3 +71,13 @@ class AbsenceResponse(BaseSchema):
 class ShiftDate(BaseSchema):
     day: date
     shift: ShiftResponse
+
+
+class AbsenceCsvLine(BaseSchema):
+    user_name: str = Field(alias="Nome")
+    day: date = Field(alias="Data")
+    shift_start: time = Field(alias="Turno (Entrada)")
+    shift_end: time = Field(alias="Turno (Saída)")
+    absence_type: AttendanceType = Field(alias="Tipo")
+    minutes_late: int | None = Field(alias="Minutos de Atraso")
+    attendance_timestamp: datetime | None = Field(alias="Data/Hora da Presença")

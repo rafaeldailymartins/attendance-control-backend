@@ -1,10 +1,15 @@
-from datetime import date, datetime
+import csv
+import io
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import StreamingResponse
 
 from app.api.records import crud
+from app.api.records.deps import GetAbsencesDep
 from app.api.records.schemas import (
+    AbsenceCsvLine,
     AbsenceResponse,
     AttendanceCreate,
     AttendanceResponse,
@@ -15,7 +20,7 @@ from app.api.users import crud as users_crud
 from app.core.config import settings
 from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
-from app.core.exceptions import BadRequest, Forbidden, NotFound
+from app.core.exceptions import Forbidden, NotFound
 from app.core.models import AttendanceType
 from app.core.schemas import Message, Page
 
@@ -121,59 +126,47 @@ def list_attendances(
     return attendances
 
 
-@router.get("/absences", response_model=list[AbsenceResponse])
-def list_absences(
-    session: SessionDep,
-    current_user: CurrentUserDep,
-    start_date: Annotated[
-        date,
-        Query(description="The initial date that will be used to search for absences"),
-    ],
-    end_date: Annotated[
-        date,
-        Query(description="The final date that will be used to search for absences"),
-    ],
-    user_id: Annotated[int | None, Query(description="Filter by user id.")] = None,
-    absence_type: Annotated[
-        AttendanceType | None,
-        Query(
-            description="Filter by absence type. "
-            "It can be 0 for clock in, or 1 for clock out."
-        ),
-    ] = None,
-):
-    """
-    Returns absences between two dates.
-    Absences of inactive users or days off will not be shown.
-    """
-
-    is_admin = (
-        current_user.role is not None
-        and current_user.role.name == settings.ADMIN_ROLE_NAME
-    )
-    is_allowed = user_id == current_user.id or is_admin
-
-    if not is_allowed:
-        raise Forbidden()
-
-    if user_id is not None:
-        user = users_crud.get_user_by_id(session=session, id=user_id)
-        if not user:
-            raise NotFound("Usuário não encontrado.")
-
-    if start_date > end_date:
-        raise BadRequest("A data inicial deve ser menor ou igual a data final.")
-
-    diff_days = (end_date - start_date).days
-
-    if diff_days > 90:
-        raise BadRequest("O período entre as datas deve ser menor que 90 dias.")
-
-    absences = crud.list_absences(
-        session=session,
-        user_id=user_id,
-        absence_type=absence_type,
-        start_date=start_date,
-        end_date=end_date,
-    )
+@router.get("/absences")
+def list_absences(absences: GetAbsencesDep) -> list[AbsenceResponse]:
     return absences
+
+
+@router.post(
+    "/absences/csv",
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "content": {"text/csv": {}},
+            "description": "CSV file",
+        }
+    },
+)
+def export_absences_to_csv(absences: GetAbsencesDep):
+    data = [
+        AbsenceCsvLine(
+            user_name=absence.shift.user.name,
+            day=absence.day,
+            shift_start=absence.shift.start_time,
+            shift_end=absence.shift.end_time,
+            absence_type=absence.absence_type,
+            minutes_late=absence.minutes_late,
+            attendance_timestamp=absence.attendance_timestamp,
+        ).model_dump(by_alias=True)
+        for absence in absences
+    ]
+
+    fieldnames = list(data[0].keys()) if data else []
+
+    buffer = io.StringIO()
+
+    writer = csv.DictWriter(buffer, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(data)
+
+    buffer.seek(0)
+
+    return StreamingResponse(
+        iter([buffer.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=absences.csv"},
+    )
