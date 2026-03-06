@@ -12,6 +12,7 @@ from app.api.records.schemas import (
     AbsenceCsvLine,
     AbsenceResponse,
     AttendanceCreate,
+    AttendanceCsvLine,
     AttendanceResponse,
     AttendanceUpdate,
 )
@@ -169,4 +170,74 @@ def export_absences_to_csv(absences: GetAbsencesDep):
         iter([buffer.getvalue()]),
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=absences.csv"},
+    )
+
+
+@router.post(
+    "/attendances/csv",
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "content": {"text/csv": {}},
+            "description": "CSV file",
+        }
+    },
+)
+def export_attendances_to_csv(
+    session: SessionDep,
+    user_id: Annotated[int | None, Query(description="Filter by user id.")] = None,
+    attendance_type: Annotated[
+        AttendanceType | None,
+        Query(
+            description="Filter by attendance type. "
+            "It can be 0 for clock in, or 1 for clock out."
+        ),
+    ] = None,
+    start_timestamp: Annotated[
+        datetime | None, Query(description="Filter by a start datetime")
+    ] = None,
+    end_timestamp: Annotated[
+        datetime | None, Query(description="Filter by a end datetime")
+    ] = None,
+):
+    if user_id is not None:
+        user = users_crud.get_user_by_id(session=session, id=user_id)
+        if not user:
+            raise NotFound("Usuário não encontrado.")
+
+    attendances = crud.list_attendances(
+        session=session,
+        user_id=user_id,
+        attendance_type=attendance_type,
+        start_timestamp=start_timestamp,
+        end_timestamp=end_timestamp,
+    )
+
+    data = [
+        AttendanceCsvLine(
+            user_name=attendance.shift.user.name,
+            weekday=attendance.shift.weekday,
+            shift_start=attendance.shift.start_time,
+            shift_end=attendance.shift.end_time,
+            attendance_type=attendance.attendance_type,
+            minutes_late=attendance.minutes_late,
+            attendance_timestamp=attendance.timestamp,
+        ).model_dump(by_alias=True)
+        for attendance in attendances.items
+    ]
+
+    fieldnames = list(data[0].keys()) if data else []
+
+    buffer = io.StringIO()
+
+    writer = csv.DictWriter(buffer, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(data)
+
+    buffer.seek(0)
+
+    return StreamingResponse(
+        iter([buffer.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=attendances.csv"},
     )
