@@ -3,7 +3,7 @@ from datetime import date, datetime, time
 from pydantic import Field
 
 from app.api.shifts.schemas import ShiftResponse
-from app.core.models import AttendanceType
+from app.core.models import AttendanceType, WeekdayEnum
 from app.core.schemas import BaseSchema
 
 
@@ -79,5 +79,15 @@ class AbsenceCsvLine(BaseSchema):
     shift_start: time = Field(alias="Turno (Entrada)")
     shift_end: time = Field(alias="Turno (Saída)")
     absence_type: AttendanceType = Field(alias="Tipo")
+    minutes_late: int | None = Field(alias="Minutos de Atraso")
+    attendance_timestamp: datetime | None = Field(alias="Data/Hora da Presença")
+
+
+class AttendanceCsvLine(BaseSchema):
+    user_name: str = Field(alias="Nome")
+    weekday: WeekdayEnum = Field(alias="Dia da semana")
+    shift_start: time = Field(alias="Turno (Entrada)")
+    shift_end: time = Field(alias="Turno (Saída)")
+    attendance_type: AttendanceType = Field(alias="Tipo")
     minutes_late: int | None = Field(alias="Minutos de Atraso")
     attendance_timestamp: datetime | None = Field(alias="Data/Hora da Presença")
