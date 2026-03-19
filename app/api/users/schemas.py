@@ -2,6 +2,7 @@ from datetime import time
 
 from pydantic import EmailStr, Field, field_serializer
 
+from app.api.app_config.schemas import RoleResponse
 from app.api.shifts.schemas import ShiftBase
 from app.core.schemas import BaseSchema
 
@@ -29,6 +30,9 @@ class UserResponse(UserBase):
     id: int = Field(description="The user id.")
     shifts: list[UserShiftResponse] = Field(
         description="A list of UserShiftResponse schema, containing the user's shifts.",
+    )
+    role: RoleResponse = Field(
+        description="The user's role",
     )
     active: bool = Field(
         description="False if the user should be hidden when returning absences."
