@@ -63,10 +63,8 @@ def list_days_off(
     return paginate(query=statement, session=session, page=page, page_size=page_size)
 
 
-def list_roles(session: Session, page: int | None = None, page_size: int | None = None):
-    statement = select(Role)
-
-    return paginate(query=statement, session=session, page=page, page_size=page_size)
+def list_roles(session: Session):
+    return list(session.exec(select(Role)).all())
 
 
 def list_timezones() -> list[TimezoneResponse]:

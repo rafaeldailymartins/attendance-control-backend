@@ -153,16 +153,14 @@ def list_days_off(
 
 @router.get(
     "/roles",
-    response_model=Page[RoleResponse],
+    response_model=list[RoleResponse],
     dependencies=[Depends(get_current_user)],
 )
-def list_roles(session: SessionDep, pagination: PaginationDep):
+def list_roles(session: SessionDep):
     """
     Get all roles
     """
-    roles = crud.list_roles(
-        session, page=pagination.page, page_size=pagination.page_size
-    )
+    roles = crud.list_roles(session)
     return roles
 
 
