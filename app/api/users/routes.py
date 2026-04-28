@@ -89,12 +89,20 @@ def list_users(
 @router.get(
     "/{user_id}/shifts",
     response_model=list[ShiftResponse],
-    dependencies=[Depends(check_admin)],
 )
-def list_user_shifts(session: SessionDep, user_id: int):
+def list_user_shifts(session: SessionDep, current_user: CurrentUserDep, user_id: int):
     """
     Get user shifts
     """
+    is_admin = (
+        current_user.role is not None
+        and current_user.role.is_admin
+    )
+    is_allowed = user_id == current_user.id or is_admin
+
+    if not is_allowed:
+        raise Forbidden()
+
     user = crud.get_user_by_id(session, user_id)
     if not user:
         raise NotFound("Usuário não encontrado.")
