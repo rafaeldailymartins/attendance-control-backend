@@ -21,6 +21,7 @@ class DayOffResponse(DayOffBase):
 
 class RoleBase(BaseSchema):
     name: str = Field(description="The role name")
+    is_admin: bool = Field(default=False, description="True if the role is admin")
 
 
 class RoleCreate(RoleBase):

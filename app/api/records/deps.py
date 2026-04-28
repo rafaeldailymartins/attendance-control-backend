@@ -39,7 +39,7 @@ def get_absences(
 
     is_admin = (
         current_user.role is not None
-        and current_user.role.name == settings.ADMIN_ROLE_NAME
+        and current_user.role.is_admin
     )
     is_allowed = user_id == current_user.id or is_admin
 
