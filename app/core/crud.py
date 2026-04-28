@@ -35,7 +35,7 @@ def get_admin_role(session: Session):
 def create_admin_role(session: Session):
     admin_role = get_admin_role(session)
     if not admin_role:
-        admin_role = Role(name=settings.ADMIN_ROLE_NAME)
+        admin_role = Role(name=settings.ADMIN_ROLE_NAME, is_admin=True)
         db_insert(session, admin_role)
 
     return admin_role

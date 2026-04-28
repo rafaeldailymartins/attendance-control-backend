@@ -10,7 +10,6 @@ from app.api.shifts.schemas import (
     UserCurrentShiftResponse,
 )
 from app.api.users import crud as users_crud
-from app.core.config import settings
 from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
 from app.core.exceptions import Forbidden, InternalServerError, NotFound
@@ -103,7 +102,7 @@ def get_current_shift(
     """
     is_admin = (
         current_user.role is not None
-        and current_user.role.name == settings.ADMIN_ROLE_NAME
+        and current_user.role.is_admin
     )
     is_allowed = user_id == current_user.id or is_admin
 

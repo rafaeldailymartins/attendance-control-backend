@@ -16,6 +16,7 @@ class ModelBase(SQLModel):
 
 class Role(ModelBase, table=True):
     name: str = Field(unique=True, index=True)
+    is_admin: bool = Field(default=False)
 
     users: list["User"] = Relationship(back_populates="role")
 
