@@ -100,10 +100,7 @@ def get_current_shift(
     It may not return a shift if the user has no more shifts today
     or if they are clocking out without clocking in.
     """
-    is_admin = (
-        current_user.role is not None
-        and current_user.role.is_admin
-    )
+    is_admin = current_user.role is not None and current_user.role.is_admin
     is_allowed = user_id == current_user.id or is_admin
 
     if not is_allowed:

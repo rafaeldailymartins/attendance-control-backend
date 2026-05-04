@@ -18,7 +18,6 @@ from app.api.records.schemas import (
 )
 from app.api.shifts import crud as shifts_crud
 from app.api.users import crud as users_crud
-from app.core.config import settings
 from app.core.crud import db_delete
 from app.core.deps import CurrentUserDep, PaginationDep, SessionDep, check_admin
 from app.core.exceptions import Forbidden, NotFound
@@ -39,10 +38,7 @@ def create_new_attendance(
     if not shift:
         raise NotFound("Turno não encontrado.")
 
-    is_admin = (
-        current_user.role is not None
-        and current_user.role.is_admin
-    )
+    is_admin = current_user.role is not None and current_user.role.is_admin
     is_allowed = shift.user_id == current_user.id or is_admin
 
     if not is_allowed:

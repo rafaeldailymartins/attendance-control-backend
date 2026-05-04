@@ -40,10 +40,7 @@ CurrentUserDep = Annotated[User, Depends(get_current_user)]
 
 
 def check_admin(current_user: CurrentUserDep):
-    if (
-        current_user.role is not None
-        and current_user.role.is_admin
-    ):
+    if current_user.role is not None and current_user.role.is_admin:
         return True
 
     raise Forbidden()

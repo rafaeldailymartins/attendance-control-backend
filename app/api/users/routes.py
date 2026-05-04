@@ -94,10 +94,7 @@ def list_user_shifts(session: SessionDep, current_user: CurrentUserDep, user_id:
     """
     Get user shifts
     """
-    is_admin = (
-        current_user.role is not None
-        and current_user.role.is_admin
-    )
+    is_admin = current_user.role is not None and current_user.role.is_admin
     is_allowed = user_id == current_user.id or is_admin
 
     if not is_allowed:
