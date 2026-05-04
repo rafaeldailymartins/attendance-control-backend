@@ -38,6 +38,26 @@ To run the project locally for development with auto-reload enabled, simply run:
 $ docker compose up --watch
 ```
 
+## 📚 API Documentation
+
+This project provides automatically generated interactive documentation.
+
+After starting the application, access:
+
+```
+http://localhost:8000/docs
+```
+
+There you will be able to:
+
+* View all available endpoints
+* Test requests directly in the browser
+* See parameters, responses, and examples
+
+> 💡 The documentation is based on the OpenAPI standard (Swagger UI)
+
+![OpenAPI Documentation](https://github.com/rafaeldailymartins/attendance-control/blob/main/images/OpenAPI.png?raw=true)
+
 ## 🛠️ Setting up the development environment
 
 By default, dependencies are managed with [uv](https://docs.astral.sh/uv/). To install them, run:

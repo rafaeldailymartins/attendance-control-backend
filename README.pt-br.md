@@ -37,6 +37,25 @@ Para executar o projeto localmente para o desenvolvimento, com a feature de auto
 $ docker compose up --watch
 ```
 
+## 📚 Documentação da API
+Este projeto possui uma documentação interativa gerada automaticamente.
+
+Após iniciar a aplicação, acesse:
+
+```
+http://localhost:8000/docs
+```
+
+Lá você poderá:
+
+* Visualizar todos os endpoints disponíveis
+* Testar requisições diretamente pelo navegador
+* Ver parâmetros, respostas e exemplos
+
+> 💡 A documentação é baseada no padrão OpenAPI (Swagger UI)
+
+![Documentação OpenAPI](https://github.com/rafaeldailymartins/attendance-control/blob/main/images/OpenAPI.png?raw=true)
+
 ## 🛠️ Preparando ambiente de desenvolvimento
 
 Por padrão, as dependências são gerenciadas com o [uv](https://docs.astral.sh/uv/). Para instalar as dependências rode:
