@@ -75,6 +75,12 @@ O projeto também utiliza o [mypy](https://mypy-lang.org/) como type checker. Pa
 $ mypy .
 ```
 
+Para migrações, o projeto utiliza [alembic](https://alembic.sqlalchemy.org/). Para gerar uma nova migração:
+
+```console
+$ ./scripts/gen_migration.sh "migration example"
+```
+
 ## ⚙️ Rodando os testes
 
 O **Attendance Control** foi projetado para rodar os testes em um banco de dados próprio para homologação.

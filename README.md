@@ -77,6 +77,12 @@ For type checking, the project uses [mypy](https://mypy-lang.org/). To run it:
 $ mypy .
 ```
 
+For migrations, the project uses [alembic](https://alembic.sqlalchemy.org/). To generate a new migration:
+
+```console
+$ ./scripts/gen_migration.sh "migration example"
+```
+
 ## ⚙️ Running tests
 
 **Attendance Control** is designed to run tests against a dedicated staging database.
